@@ -5,7 +5,7 @@
     <parent>
         <artifactId>assignment</artifactId>
         <groupId>mt.edu.um</groupId>
-        <version>${build.version}</version>
+        <version>TRUNK</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>mt.edu.um</groupId>
             <artifactId>protocol</artifactId>
-            <version>${build.version}</version>
+            <version>TRUNK</version>
         </dependency>
     </dependencies>
 

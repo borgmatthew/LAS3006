@@ -7,7 +7,7 @@
     <groupId>mt.edu.um</groupId>
     <artifactId>assignment</artifactId>
     <packaging>pom</packaging>
-    <version>${build.version}</version>
+    <version>TRUNK</version>
     <modules>
         <module>broker</module>
         <module>client-publisher</module>
@@ -16,7 +16,8 @@
     </modules>
 
     <properties>
-        <build.version>TRUNK</build.version>
+        <java.version.source>1.8</java.version.source>
+        <java.version.target>1.8</java.version.target>
     </properties>
 
     <build>
@@ -27,8 +28,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.3</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>${java.version.source}</source>
+                        <target>${java.version.target}</target>
                     </configuration>
                 </plugin>
             </plugins>

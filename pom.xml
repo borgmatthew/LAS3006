@@ -10,8 +10,9 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>broker</module>
-        <module>client-device</module>
-        <module>client-application</module>
+        <module>client-publisher</module>
+        <module>client-subscriber</module>
+        <module>protocol</module>
     </modules>
 
     <build>

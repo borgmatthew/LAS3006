@@ -4,15 +4,22 @@ import mt.edu.um.broker.Topic;
 import mt.edu.um.broker.TopicPath;
 import mt.edu.um.broker.TopicSubscribers;
 
+import java.util.HashMap;
+
 /**
  * Created by matthew on 29/11/2015.
  */
 public class TopicForestImpl implements TopicForest {
 
-    private Node<Topic, TopicSubscribers> root;
+    private static final TopicForest instance = new TopicForestImpl();
+    private HashMap<Topic, Node<Topic, TopicSubscribers>> rootTopics;
 
     private TopicForestImpl(){
-        root = null;
+        rootTopics = null;
+    }
+
+    public static TopicForest getInstance() {
+        return instance;
     }
 
     @Override

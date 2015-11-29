@@ -9,7 +9,8 @@
     <packaging>pom</packaging>
     <version>TRUNK</version>
     <modules>
-        <module>broker</module>
+        <module>broker-bd</module>
+        <module>broker-impl</module>
         <module>client-publisher</module>
         <module>client-subscriber</module>
         <module>protocol</module>

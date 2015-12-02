@@ -15,7 +15,11 @@ public class TopicTreeImpl implements TopicTree{
 
     @Override
     public boolean insert(TopicPath key, Set<Subscriber> value) {
-        return false;
+        if(key.getTopics().size() > 0 && value != null) {
+            return recursiveInsert(key, value, 0, root);
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -32,4 +36,27 @@ public class TopicTreeImpl implements TopicTree{
     public void traverse(Consumer<Set<Subscriber>> consumer) {
 
     }
+
+    private boolean recursiveInsert(TopicPath key, Set<Subscriber> value, int depth, Node<Topic, Set<Subscriber>> node) {
+        if(depth == key.getTopics().size()) {
+            Topic topic = key.getTopics().get(depth);
+            if (!node.getChildren().keySet().contains(topic)) {
+                node.getChildren().put(topic, new Node(topic, value));
+                return true;
+            }
+            return false;
+        } else {
+            Topic topic = key.getTopics().get(depth);
+            Node<Topic, Set<Subscriber>> nextNode;
+            if (!node.getChildren().keySet().contains(topic)) {
+                nextNode = new Node(topic, new HashSet<Subscriber>());
+                node.getChildren().put(topic, nextNode);
+            } else {
+                nextNode = node.getChildren().get(topic);
+            }
+            return recursiveInsert(key, value, 1+depth, nextNode);
+        }
+    }
+
+    private Set<Subscriber> recursiveGet(){}
 }

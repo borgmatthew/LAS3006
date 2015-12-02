@@ -1,4 +1,4 @@
-package mt.edu.um.broker;
+package mt.edu.um.topic;
 
 /**
  * Created by matthew on 26/11/2015.

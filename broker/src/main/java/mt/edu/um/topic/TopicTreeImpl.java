@@ -2,8 +2,7 @@ package mt.edu.um.topic;
 
 import mt.edu.um.graph.Node;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -29,7 +28,11 @@ public class TopicTreeImpl implements TopicTree{
 
     @Override
     public Set<Subscriber> get(TopicPath key) {
-        return null;
+        if(key.getTopics().size() > 0) {
+            return recursiveGet(key, 0, new HashSet<>(Arrays.asList(root)));
+        } else {
+            return Collections.emptySet();
+        }
     }
 
     @Override
@@ -58,5 +61,27 @@ public class TopicTreeImpl implements TopicTree{
         }
     }
 
-    private Set<Subscriber> recursiveGet(){}
+    private Set<Subscriber> recursiveGet(TopicPath key, int depth, Set<Node> matchingNodes) {
+//        if(depth == key.getTopics().size()) {
+//            Topic topic = key.getTopics().get(depth);
+//            if (!node.getChildren().keySet().contains(topic)) {
+//                node.getChildren().put(topic, new Node(topic, value));
+//                return true;
+//            }
+//            return false;
+//        } else {
+//            Topic topic = key.getTopics().get(depth);
+//            Node<Topic, Set<Subscriber>> nextNode;
+//            if (!node.getChildren().keySet().contains(topic)) {
+//                nextNode = new Node(topic, new HashSet<Subscriber>());
+//                node.getChildren().put(topic, nextNode);
+//            } else {
+//                nextNode = node.getChildren().get(topic);
+//            }
+//            return recursiveInsert(key, value, 1+depth, nextNode);
+//        }
+        return null;
+    }
+
+
 }

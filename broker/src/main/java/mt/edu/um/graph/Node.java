@@ -9,7 +9,7 @@ import java.util.Map;
 public class Node<K, V> {
 
     private K key;
-    private Map<K, Node> children;
+    private Map<K, Node<K, V>> children;
     private V value;
 
     public Node(K key, V value) {
@@ -18,7 +18,7 @@ public class Node<K, V> {
         children = new HashMap<>();
     }
 
-    public Map<K, Node> getChildren() {
+    public Map<K, Node<K, V>> getChildren() {
         return children;
     }
 

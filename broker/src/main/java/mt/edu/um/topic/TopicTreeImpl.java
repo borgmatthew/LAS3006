@@ -14,7 +14,7 @@ public class TopicTreeImpl implements TopicTree{
 
     @Override
     public boolean insert(TopicPath key, Set<Subscriber> value) {
-        if(key.getTopics().size() > 0 && value != null) {
+        if(key.getTopics().size() > 0 && value.size() > 0) {
             return recursiveInsert(key, value, 0, root);
         } else {
             return false;
@@ -41,7 +41,7 @@ public class TopicTreeImpl implements TopicTree{
     }
 
     private boolean recursiveInsert(TopicPath key, Set<Subscriber> value, int depth, Node<Topic, Set<Subscriber>> node) {
-        if(depth == key.getTopics().size()) {
+        if(depth == key.getTopics().size()-1) {
             Topic topic = key.getTopics().get(depth);
             if (!node.getChildren().keySet().contains(topic)) {
                 node.getChildren().put(topic, new Node(topic, value));
@@ -61,26 +61,44 @@ public class TopicTreeImpl implements TopicTree{
         }
     }
 
-    private Set<Subscriber> recursiveGet(TopicPath key, int depth, Set<Node> matchingNodes) {
-//        if(depth == key.getTopics().size()) {
-//            Topic topic = key.getTopics().get(depth);
-//            if (!node.getChildren().keySet().contains(topic)) {
-//                node.getChildren().put(topic, new Node(topic, value));
-//                return true;
-//            }
-//            return false;
-//        } else {
-//            Topic topic = key.getTopics().get(depth);
-//            Node<Topic, Set<Subscriber>> nextNode;
-//            if (!node.getChildren().keySet().contains(topic)) {
-//                nextNode = new Node(topic, new HashSet<Subscriber>());
-//                node.getChildren().put(topic, nextNode);
-//            } else {
-//                nextNode = node.getChildren().get(topic);
-//            }
-//            return recursiveInsert(key, value, 1+depth, nextNode);
-//        }
-        return null;
+    private Set<Subscriber> recursiveGet(TopicPath key, int depth, Set<Node<Topic, Set<Subscriber>>> matchingNodes) {
+        if(matchingNodes.size() == 0) {
+            return Collections.emptySet();
+        } else if(depth == key.getTopics().size()) {
+            Set<Subscriber> subscribers = new HashSet<>();
+            for(Node<Topic, Set<Subscriber>> node : matchingNodes) {
+                subscribers.addAll(node.getValue());
+            }
+            return subscribers;
+        } else {
+            Set<Node<Topic, Set<Subscriber>>> result = new HashSet<>();
+            Set<Subscriber> subscribers = new HashSet<>();
+            for (Node<Topic, Set<Subscriber>> node : matchingNodes) {
+                if(node.getChildren().containsKey(new Topic("#"))) {
+                    subscribers.addAll(node.getChildren().get(new Topic("#")).getValue());
+                }
+                result.addAll(matches(node, key.getTopics().get(depth)));
+            }
+            subscribers.addAll(recursiveGet(key, depth + 1, result));
+            return subscribers;
+        }
+    }
+
+    private Set<Node<Topic, Set<Subscriber>>> matches(Node<Topic, Set<Subscriber>> node, Topic topic) {
+        Set<Node<Topic, Set<Subscriber>>> matchedNodes = new HashSet<>();
+        if(node.getChildren().containsKey(topic)) {
+            matchedNodes.add(node.getChildren().get(topic));
+        }
+
+        if(node.getChildren().containsKey(new Topic("+"))) {
+            matchedNodes.add(node.getChildren().get(new Topic("+")));
+        }
+
+        if(node.getChildren().containsKey(new Topic("#"))) {
+            matchedNodes.add(node.getChildren().get(new Topic("#")));
+        }
+
+        return matchedNodes;
     }
 
 

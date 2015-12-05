@@ -16,6 +16,13 @@ public interface Tree<K, V> {
     boolean insert(K key, V value);
 
     /**
+     * Checks if there is a value for the given key in the tree
+     * @param key a unique key to search with
+     * @return true if the value is found, false otherwise
+     */
+    boolean contains(K key);
+
+    /**
      * Removes an entry from the tree
      * @param key a unique key
      * @return true on success, false on failure
@@ -34,4 +41,10 @@ public interface Tree<K, V> {
      * @param consumer the function to apply
      */
     void traverse(Consumer<V> consumer);
+
+    /**
+     * Counts the number of nodes in the tree
+     * @return the number of nodes
+     */
+    int size();
 }

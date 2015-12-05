@@ -37,6 +37,7 @@ public class TopicTreeImpl implements TopicTree{
 
     @Override
     public void traverse(Consumer<Set<Subscriber>> consumer) {
+        Map<Topic, Node<Topic, Set<Subscriber>>> children = root.getChildren();
 
     }
 
@@ -92,10 +93,6 @@ public class TopicTreeImpl implements TopicTree{
 
         if(node.getChildren().containsKey(new Topic("+"))) {
             matchedNodes.add(node.getChildren().get(new Topic("+")));
-        }
-
-        if(node.getChildren().containsKey(new Topic("#"))) {
-            matchedNodes.add(node.getChildren().get(new Topic("#")));
         }
 
         return matchedNodes;

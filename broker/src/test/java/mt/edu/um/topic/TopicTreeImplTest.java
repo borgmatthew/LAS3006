@@ -87,6 +87,7 @@ public class TopicTreeImplTest {
         //Inserts should succeed
         Assert.assertTrue(topicTree.insert(topicPath, subscribers));
         Assert.assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
+
         Assert.assertEquals(subscribers, topicTree.get(topicPath));
     }
 
@@ -107,6 +108,7 @@ public class TopicTreeImplTest {
         //Inserts should succeed
         Assert.assertTrue(topicTree.insert(topicPath, subscribers));
         Assert.assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
+
         Assert.assertEquals(result, topicTree.get(topicPath));
     }
 
@@ -127,6 +129,7 @@ public class TopicTreeImplTest {
         //Inserts should succeed
         Assert.assertTrue(topicTree.insert(topicPath, subscribers));
         Assert.assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
+
         Assert.assertEquals(result, topicTree.get(topicPath));
     }
 
@@ -164,6 +167,7 @@ public class TopicTreeImplTest {
         //Inserts should succeed
         Assert.assertTrue(topicTree.insert(topicPath, subscribers));
         Assert.assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
+
         Assert.assertEquals(subscribers, topicTree.get(topicPath));
     }
 }

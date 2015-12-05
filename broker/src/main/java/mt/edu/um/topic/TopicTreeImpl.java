@@ -136,7 +136,7 @@ public class TopicTreeImpl implements TopicTree {
     }
 
     private boolean recursiveContains(TopicPath key, int depth, Node<Topic, Set<Subscriber>> parent) {
-        if (depth == key.getTopics().size()) {
+        if (depth == key.getTopics().size()-1) {
             if(parent.getChildren().containsKey(key.getTopics().get(depth))) {
                 return true;
             } else {

@@ -254,9 +254,84 @@ public class TopicTreeImplTest {
         //Remove is successful
         assertTrue(topicTree.remove(topicPath));
 
-        Consumer consumer = Mockito.mock(Consumer.class);
-        topicTree.traverse(consumer);
-        //Check that tree is empty
         assertEquals(2, topicTree.size());
+    }
+
+    @Test
+    public void testSize_multipleNodes() throws Exception {
+        topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
+        Subscriber subscriber = new Subscriber("subscriber");
+        subscribers.add(subscriber);
+
+        TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("funTopic")));
+
+        //Insert should succeed
+        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPathTwo, subscribers));
+
+        assertEquals(4, topicTree.size());
+    }
+
+    @Test
+    public void testSize_rootNodeShouldNotBeCounted() throws Exception {
+        assertEquals(0, topicTree.size());
+    }
+
+    @Test
+    public void testGet_retrievesSameObject() throws Exception {
+        topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
+        Subscriber subscriber = new Subscriber("subscriber");
+        subscribers.add(subscriber);
+
+        //Insert should succeed
+        assertTrue(topicTree.insert(topicPath, subscribers));
+
+        assertEquals(subscribers, topicTree.get(topicPath));
+    }
+
+    @Test
+    public void testGet_emptyPath_emptySetIsReturned() throws Exception {
+        assertEquals(0, topicTree.get(new TopicPath(new ArrayList<>(0))).size());
+    }
+
+    @Test
+    public void testGet_keyNotFound_emptySetIsReturned() throws Exception {
+        topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
+        Subscriber subscriber = new Subscriber("subscriber");
+        subscribers.add(subscriber);
+
+        //Insert should succeed
+        assertTrue(topicTree.insert(topicPath, subscribers));
+
+        assertEquals(0, topicTree.get(new TopicPath(Arrays.asList(new Topic("testTopic")))).size());
+    }
+
+    @Test
+    public void testContains_returnsTrueWhenObjectFound() throws Exception {
+        topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
+        Subscriber subscriber = new Subscriber("subscriber");
+        subscribers.add(subscriber);
+
+        //Insert should succeed
+        assertTrue(topicTree.insert(topicPath, subscribers));
+
+        assertTrue(topicTree.contains(topicPath));
+    }
+
+    @Test
+    public void testContains_emptyPath_falseIsReturned() throws Exception {
+        assertFalse(topicTree.contains(new TopicPath(new ArrayList<>(0))));
+    }
+
+    @Test
+    public void testContains_keyNotFound_falseIsReturned() throws Exception {
+        topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
+        Subscriber subscriber = new Subscriber("subscriber");
+        subscribers.add(subscriber);
+
+        //Insert should succeed
+        assertTrue(topicTree.insert(topicPath, subscribers));
+
+        assertFalse(topicTree.contains(new TopicPath(Arrays.asList(new Topic("TestTopic")))));
     }
 }

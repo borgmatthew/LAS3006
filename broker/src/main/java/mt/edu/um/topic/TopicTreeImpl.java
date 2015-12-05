@@ -44,6 +44,8 @@ public class TopicTreeImpl implements TopicTree{
             Map<Topic, Node<Topic, Set<Subscriber>>> children = root.getChildren();
             for(Node<Topic, Set<Subscriber>> node : children.values()) {
                 consumer.accept(node.getValue());
+                //TODO: remove code to print tree
+                System.out.println(root.getKey().getName() + " -> " + node.getKey().getName() + ";");
                 stack.push(node);
             }
         }

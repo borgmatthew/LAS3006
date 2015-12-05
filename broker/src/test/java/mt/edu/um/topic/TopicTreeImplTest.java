@@ -3,11 +3,13 @@ package mt.edu.um.topic;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Created by matthew on 03/12/2015.
@@ -169,5 +171,28 @@ public class TopicTreeImplTest {
         Assert.assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
 
         Assert.assertEquals(subscribers, topicTree.get(topicPath));
+    }
+
+    @Test
+    public void testTraverse_visitsEveryNode() throws Exception {
+        topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
+        Subscriber subscriber = new Subscriber("subscriber");
+        subscribers.add(subscriber);
+
+        Set<Subscriber> subscribersTwo = new HashSet<>();
+        TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("+"), new Topic("childTopic")));
+        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        subscribersTwo.add(subscriberTwo);
+
+        Consumer consumer = Mockito.mock(Consumer.class);
+
+        //Inserts should succeed
+        Assert.assertTrue(topicTree.insert(topicPath, subscribers));
+        Assert.assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
+
+        topicTree.traverse(consumer);
+
+        Mockito.verify(consumer, Mockito.times(5)).accept(Mockito.any());
+        Mockito.verifyNoMoreInteractions(consumer);
     }
 }

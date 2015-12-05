@@ -17,6 +17,12 @@
             <artifactId>protocol</artifactId>
             <version>TRUNK</version>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+        </dependency>
+
     </dependencies>
 
 

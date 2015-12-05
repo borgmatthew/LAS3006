@@ -37,8 +37,16 @@ public class TopicTreeImpl implements TopicTree{
 
     @Override
     public void traverse(Consumer<Set<Subscriber>> consumer) {
-        Map<Topic, Node<Topic, Set<Subscriber>>> children = root.getChildren();
-
+        Stack<Node<Topic, Set<Subscriber>>> stack = new Stack<>();
+        stack.push(root);
+        while(!stack.empty()) {
+            Node<Topic, Set<Subscriber>> root = stack.pop();
+            Map<Topic, Node<Topic, Set<Subscriber>>> children = root.getChildren();
+            for(Node<Topic, Set<Subscriber>> node : children.values()) {
+                consumer.accept(node.getValue());
+                stack.push(node);
+            }
+        }
     }
 
     private boolean recursiveInsert(TopicPath key, Set<Subscriber> value, int depth, Node<Topic, Set<Subscriber>> node) {

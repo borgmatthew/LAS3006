@@ -1,6 +1,8 @@
-package mt.edu.um.topic;
+package mt.edu.um.core;
 
 import mt.edu.um.graph.Tree;
+import mt.edu.um.subscriber.Subscriber;
+import mt.edu.um.topic.TopicPath;
 
 import java.util.List;
 import java.util.Set;

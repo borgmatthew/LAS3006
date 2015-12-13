@@ -1,4 +1,4 @@
-package mt.edu.um.topic;
+package mt.edu.um.subscriber;
 
 /**
  * Created by matthew on 26/11/2015.

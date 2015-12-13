@@ -1,5 +1,8 @@
-package mt.edu.um.topic;
+package mt.edu.um.core;
 
+import mt.edu.um.subscriber.Subscriber;
+import mt.edu.um.topic.Topic;
+import mt.edu.um.topic.TopicPath;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

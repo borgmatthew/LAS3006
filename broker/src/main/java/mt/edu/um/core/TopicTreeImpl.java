@@ -1,6 +1,9 @@
-package mt.edu.um.topic;
+package mt.edu.um.core;
 
 import mt.edu.um.graph.Node;
+import mt.edu.um.subscriber.Subscriber;
+import mt.edu.um.topic.Topic;
+import mt.edu.um.topic.TopicPath;
 
 import java.util.*;
 import java.util.function.Consumer;

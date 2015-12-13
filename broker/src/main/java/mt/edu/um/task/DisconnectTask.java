@@ -1,22 +1,24 @@
 package mt.edu.um.task;
 
-import mt.edu.um.core.TopicTree;
+import mt.edu.um.subscriber.SubscribersFacade;
 
 import java.util.concurrent.Callable;
 
 /**
  * Created by matthew on 11/12/2015.
  */
-public class DisconnectTask implements Callable<Void> {
+public class DisconnectTask implements Callable<Boolean> {
 
-    private TopicTree topicTree;
+    private SubscribersFacade subscribersFacade;
+    private int id;
 
-    public DisconnectTask(TopicTree topicTree) {
-        this.topicTree = topicTree;
+    public DisconnectTask(SubscribersFacade subscribersFacade, int id) {
+        this.subscribersFacade = subscribersFacade;
+        this.id = id;
     }
 
     @Override
-    public Void call() throws Exception {
-        return null;
+    public Boolean call() throws Exception {
+        return subscribersFacade.unsubscribe(id);
     }
 }

@@ -1,4 +1,4 @@
-package mt.edu.um.core;
+package mt.edu.um.topictree;
 
 import mt.edu.um.graph.Node;
 import mt.edu.um.subscriber.Subscriber;

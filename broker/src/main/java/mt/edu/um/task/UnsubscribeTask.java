@@ -1,6 +1,6 @@
 package mt.edu.um.task;
 
-import mt.edu.um.core.TopicTree;
+import mt.edu.um.topictree.TopicTree;
 import mt.edu.um.subscriber.Subscriber;
 import mt.edu.um.topic.TopicPath;
 

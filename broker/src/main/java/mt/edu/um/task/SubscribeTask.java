@@ -1,8 +1,8 @@
 package mt.edu.um.task;
 
-import mt.edu.um.topictree.TopicTree;
 import mt.edu.um.subscriber.Subscriber;
 import mt.edu.um.topic.TopicPath;
+import mt.edu.um.topictree.TopicTreeFacade;
 
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -12,17 +12,17 @@ import java.util.concurrent.Callable;
  */
 public class SubscribeTask implements Callable<Boolean> {
 
-    private TopicTree topicTree;
+    private TopicTreeFacade topicTreeFacade;
     private TopicPath topicPath;
     private Set<Subscriber> subscriberSet;
 
-    public SubscribeTask(TopicTree topicTree, TopicPath topicPath) {
-        this.topicTree = topicTree;
+    public SubscribeTask(TopicTreeFacade topicTreeFacade, TopicPath topicPath) {
+        this.topicTreeFacade = topicTreeFacade;
         this.topicPath = topicPath;
     }
 
     @Override
     public Boolean call() throws Exception {
-        return topicTree.insert(topicPath, subscriberSet);
+        return topicTreeFacade.subscribe(topicPath, subscriberSet);
     }
 }

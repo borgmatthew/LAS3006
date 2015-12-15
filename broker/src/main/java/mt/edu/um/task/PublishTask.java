@@ -1,8 +1,8 @@
 package mt.edu.um.task;
 
-import mt.edu.um.topictree.TopicTree;
 import mt.edu.um.subscriber.Subscriber;
 import mt.edu.um.topic.TopicPath;
+import mt.edu.um.topictree.TopicTreeFacade;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +13,16 @@ import java.util.concurrent.Callable;
  */
 public class PublishTask implements Callable<List<Subscriber>> {
 
-    private TopicTree topicTree;
+    private TopicTreeFacade topicTreeFacade;
     private TopicPath topicPath;
 
-    public PublishTask(TopicTree topicTree, TopicPath topicPath) {
-        this.topicTree = topicTree;
+    public PublishTask(TopicTreeFacade topicTreeFacade, TopicPath topicPath) {
+        this.topicTreeFacade = topicTreeFacade;
         this.topicPath = topicPath;
     }
 
     @Override
     public List<Subscriber> call() throws Exception {
-        return new ArrayList(topicTree.getSubscribers(topicPath));
+        return new ArrayList(topicTreeFacade.getSubscribers(topicPath));
     }
 }

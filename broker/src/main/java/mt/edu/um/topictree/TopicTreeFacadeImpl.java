@@ -21,7 +21,7 @@ public class TopicTreeFacadeImpl implements TopicTreeFacade {
 
     @Override
     public boolean subscribe(TopicPath topicPath, Set<Subscriber> subscribers) {
-        try{
+        try {
             lock.readLock().lock();
             return topicTree.insert(topicPath, subscribers);
         } finally {
@@ -31,10 +31,15 @@ public class TopicTreeFacadeImpl implements TopicTreeFacade {
 
     @Override
     public boolean unsubscribe(TopicPath topicPath, Subscriber subscriber) {
-        try{
+        try {
             lock.writeLock().lock();
-            if(topicTree.contains(topicPath)) {
-                return topicTree.get(topicPath).remove(subscriber);
+            if (topicTree.contains(topicPath)) {
+                Set<Subscriber> subscribers = topicTree.get(topicPath);
+                boolean result = subscribers.remove(subscriber);
+                if (subscribers.size() == 0) {
+                    topicTree.remove(topicPath);
+                }
+                return result;
             } else {
                 return false;
             }
@@ -45,7 +50,7 @@ public class TopicTreeFacadeImpl implements TopicTreeFacade {
 
     @Override
     public Set<Subscriber> getSubscribers(TopicPath topicPath) {
-        try{
+        try {
             lock.readLock().lock();
             return topicTree.getSubscribers(topicPath);
         } finally {

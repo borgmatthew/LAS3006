@@ -6,6 +6,7 @@ import mt.edu.um.topictree.TopicTreeImpl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -25,7 +26,7 @@ public class Server {
              ServerSocketChannel socketChannel = ServerSocketChannel.open()) {
 
             socketChannel.configureBlocking(false);
-            socketChannel.bind(new InetSocketAddress(3522));
+            socketChannel.bind(new InetSocketAddress(3523));
             socketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
             while (true) {
@@ -40,8 +41,8 @@ public class Server {
                             ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
                             SocketChannel clientChannel = serverSocketChannel.accept();
                             clientChannel.configureBlocking(false);
-                            SelectionKey clientKey = clientChannel.register(key.selector(), SelectionKey.OP_READ);
-
+                            clientChannel.register(selector, SelectionKey.OP_READ);
+                            System.out.println("Client accepted!");
                         }
 
                         if (key.isValid() && key.isConnectable()) {
@@ -52,6 +53,12 @@ public class Server {
 
                         if (key.isValid() && key.isReadable()) {
                             System.out.println("key is readable");
+                            ByteBuffer header = ByteBuffer.allocate(128);
+                            int read = ((SocketChannel)key.channel()).read(header);
+                            System.out.println("Received: " + read + " bytes.");
+                            if(read == -1) {
+                                key.channel().close();
+                            }
                         }
 
                         if (key.isValid() && key.isWritable()) {
@@ -61,6 +68,7 @@ public class Server {
                         if (!key.isValid()) {
                             System.out.println("Key is not valid");
                             SocketChannel channel = (SocketChannel) key.channel();
+                            key.cancel();
                             channel.close();
                         }
 

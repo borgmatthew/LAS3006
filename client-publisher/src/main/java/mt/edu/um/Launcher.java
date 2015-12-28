@@ -1,5 +1,9 @@
 package mt.edu.um;
 
+import mt.edu.um.protocol.communication.BrokerProtocol;
+import mt.edu.um.protocol.communication.BrokerProtocolImpl;
+import mt.edu.um.protocol.message.ConnectMessage;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -15,6 +19,8 @@ import java.util.Set;
 public class Launcher {
 
     public static void main(String[] args) {
+        final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
+
         try (SocketChannel socketChannel = SocketChannel.open();
              Selector selector = Selector.open()) {
 
@@ -28,6 +34,7 @@ public class Launcher {
                 if (selector.select() > 0) {
                     Set<SelectionKey> selectedKeys = selector.selectedKeys();
                     Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
+
                     while (keyIterator.hasNext()) {
                         SelectionKey key = keyIterator.next();
                         keyIterator.remove();
@@ -35,11 +42,7 @@ public class Launcher {
                         if (key.isValid() && key.isConnectable()) {
                             SocketChannel channel = (SocketChannel) key.channel();
                             channel.finishConnect();
-                            ByteBuffer buffer = ByteBuffer.allocate(20);
-                            buffer.put(0, (byte) 'a');
-                            System.out.println("Writing to buffer");
-                            socketChannel.write(buffer);
-                            key.interestOps(SelectionKey.OP_READ);
+                            key.interestOps(SelectionKey.OP_WRITE);
                         }
 
                         if (key.isValid() && key.isReadable()) {
@@ -52,6 +55,13 @@ public class Launcher {
                             }
                         }
 
+                        if (key.isValid() && key.isWritable()) {
+                            SocketChannel channel = (SocketChannel) key.channel();
+                            ConnectMessage connectMessage = new ConnectMessage(1234);
+                            brokerProtocol.send(channel, connectMessage);
+                            Thread.sleep(5000);
+                        }
+
                         if (!key.isValid()) {
                             System.out.println("Key is not valid");
                             SocketChannel channel = (SocketChannel) key.channel();
@@ -62,22 +72,10 @@ public class Launcher {
                     }
                 }
             }
-
-//            while (!socketChannel.finishConnect()) {
-//                System.out.println("Connection in progress...");
-//            }
-//            System.out.println(socketChannel.isConnected());
-//            System.out.println("sleeping for 5 sec");
-//            Thread.sleep(5000);
-//            ByteBuffer buffer = ByteBuffer.allocate(20);
-//            buffer.put(0, (byte)'a');
-//            System.out.println("Writing to buffer");
-//            socketChannel.write(buffer);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
     }
 }

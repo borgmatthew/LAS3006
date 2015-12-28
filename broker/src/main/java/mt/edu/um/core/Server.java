@@ -1,12 +1,15 @@
 package mt.edu.um.core;
 
+import mt.edu.um.protocol.communication.BrokerProtocol;
+import mt.edu.um.protocol.communication.BrokerProtocolImpl;
+import mt.edu.um.protocol.message.ConnectMessage;
+import mt.edu.um.protocol.message.Message;
 import mt.edu.um.topictree.TopicTreeFacade;
 import mt.edu.um.topictree.TopicTreeFacadeImpl;
 import mt.edu.um.topictree.TopicTreeImpl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -19,7 +22,8 @@ import java.util.Set;
  */
 public class Server {
 
-    private TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
+    private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
+    private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
 
     public void start() {
         try (Selector selector = Selector.open();
@@ -53,12 +57,9 @@ public class Server {
 
                         if (key.isValid() && key.isReadable()) {
                             System.out.println("key is readable");
-                            ByteBuffer header = ByteBuffer.allocate(128);
-                            int read = ((SocketChannel)key.channel()).read(header);
-                            System.out.println("Received: " + read + " bytes.");
-                            if(read == -1) {
-                                key.channel().close();
-                            }
+                            Message message = brokerProtocol.receive((SocketChannel)key.channel());
+                            System.out.println(message.getType());
+                            System.out.println("Id: " + ((ConnectMessage) message).getId());
                         }
 
                         if (key.isValid() && key.isWritable()) {

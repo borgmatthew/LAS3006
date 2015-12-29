@@ -7,17 +7,17 @@ import java.nio.ByteBuffer;
  */
 public class MessageHeader {
 
-    MessageType type;
+    short key;
 
     short remainingLength;
 
-    public MessageHeader(MessageType type, short remainingLength) {
-        this.type = type;
+    public MessageHeader(short key, short remainingLength) {
+        this.key = key;
         this.remainingLength = remainingLength;
     }
 
-    public MessageType getType() {
-        return type;
+    public short getMessageKey() {
+        return key;
     }
 
     public long getRemainingLength() {
@@ -25,6 +25,6 @@ public class MessageHeader {
     }
 
     public byte[] build() {
-        return ByteBuffer.allocate(4).putShort(type.getId()).putShort(remainingLength).array();
+        return ByteBuffer.allocate(4).putShort(key).putShort(remainingLength).array();
     }
 }

@@ -3,6 +3,8 @@ package mt.edu.um;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
 import mt.edu.um.protocol.message.ConnectMessage;
+import mt.edu.um.protocol.message.MessageFactory;
+import mt.edu.um.protocol.message.MessageType;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -57,7 +59,8 @@ public class Launcher {
 
                         if (key.isValid() && key.isWritable()) {
                             SocketChannel channel = (SocketChannel) key.channel();
-                            ConnectMessage connectMessage = new ConnectMessage(1234);
+                            ConnectMessage connectMessage = (ConnectMessage) MessageFactory.getMessageInstance(MessageType.CONNECT);
+                            connectMessage.setId(1234);
                             brokerProtocol.send(channel, connectMessage);
                             Thread.sleep(5000);
                         }

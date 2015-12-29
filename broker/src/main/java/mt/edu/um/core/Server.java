@@ -2,7 +2,6 @@ package mt.edu.um.core;
 
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
-import mt.edu.um.protocol.message.ConnectMessage;
 import mt.edu.um.protocol.message.Message;
 import mt.edu.um.topictree.TopicTreeFacade;
 import mt.edu.um.topictree.TopicTreeFacadeImpl;
@@ -24,6 +23,7 @@ public class Server {
 
     private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
     private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
+    private final ServerMessageHandlerVisitor serverMessageHandlerVisitor = new ServerMessageHandlerVisitor();
 
     public void start() {
         try (Selector selector = Selector.open();
@@ -58,8 +58,7 @@ public class Server {
                         if (key.isValid() && key.isReadable()) {
                             System.out.println("key is readable");
                             Message message = brokerProtocol.receive((SocketChannel)key.channel());
-                            System.out.println(message.getType());
-                            System.out.println("Id: " + ((ConnectMessage) message).getId());
+                            message.accept(serverMessageHandlerVisitor);
                         }
 
                         if (key.isValid() && key.isWritable()) {

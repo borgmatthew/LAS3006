@@ -15,5 +15,7 @@ public interface Message {
      */
     void resolve(byte[] messageInBytes);
 
-    MessageType getType();
+    short getKey();
+
+    void accept(Visitor visitor);
 }

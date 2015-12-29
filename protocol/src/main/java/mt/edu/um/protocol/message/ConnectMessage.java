@@ -9,16 +9,17 @@ public class ConnectMessage implements Message {
 
     int id;
 
-    public ConnectMessage() {
+    protected ConnectMessage() {
         id = -1;
-    }
-
-    public ConnectMessage(int id) {
-        this.id = id;
     }
 
     public int getId() {
         return id;
+    }
+
+    public ConnectMessage setId(int id) {
+        this.id = id;
+        return this;
     }
 
     @Override
@@ -33,7 +34,12 @@ public class ConnectMessage implements Message {
     }
 
     @Override
-    public MessageType getType() {
-        return MessageType.CONNECT;
+    public short getKey() {
+        return MessageType.CONNECT.getId();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
     }
 }

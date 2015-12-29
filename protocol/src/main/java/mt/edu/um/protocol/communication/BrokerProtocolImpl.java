@@ -1,9 +1,6 @@
 package mt.edu.um.protocol.communication;
 
-import mt.edu.um.protocol.message.ConnectMessage;
-import mt.edu.um.protocol.message.Message;
-import mt.edu.um.protocol.message.MessageHeader;
-import mt.edu.um.protocol.message.MessageType;
+import mt.edu.um.protocol.message.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,12 +17,12 @@ public class BrokerProtocolImpl implements BrokerProtocol {
     @Override
     public void send(SocketChannel channel, Message message) {
         byte [] messageInBytes = message.build();
-        MessageType messageType = message.getType();
+        short messageKey = message.getKey();
         final int iterations = messageInBytes.length / BODY_BYTES + ((messageInBytes.length % BODY_BYTES > 0) ? 1 : 0);
         for(int i=0; i < iterations; i++) {
             int startOffset = i * BODY_BYTES;
             short remainingLength = (short) (((i+1)*BODY_BYTES > messageInBytes.length) ? messageInBytes.length - i * BODY_BYTES : BODY_BYTES);
-            MessageHeader header = new MessageHeader(messageType, remainingLength);
+            MessageHeader header = new MessageHeader(messageKey, remainingLength);
             try {
                 channel.write(new ByteBuffer[] { ByteBuffer.wrap(header.build()), ByteBuffer.wrap(messageInBytes, startOffset, remainingLength) });
             } catch (IOException e) {
@@ -46,7 +43,7 @@ public class BrokerProtocolImpl implements BrokerProtocol {
             e.printStackTrace();
         }
         MessageHeader header = parseHeader(headerBuffer);
-        Message message = getMessageInstance(header.getType());
+        Message message = MessageFactory.getMessageInstance(getMessageType(header.getMessageKey()));
         message.resolve(bodyBuffer.array());
         return message;
     }
@@ -54,22 +51,7 @@ public class BrokerProtocolImpl implements BrokerProtocol {
     private MessageHeader parseHeader(ByteBuffer buffer) {
         short messageTypeId = buffer.getShort();
         short remainingLength = buffer.getShort();
-        MessageType messageType = getMessageType(messageTypeId);
-        return new MessageHeader(messageType, remainingLength);
-    }
-
-    private Message getMessageInstance(MessageType messageType) {
-        Message message;
-        switch (messageType) {
-            case CONNECT: {
-                message = new ConnectMessage();
-                break;
-            }
-            default: {
-                throw new UnsupportedOperationException("Not implemented yet");
-            }
-        }
-        return message;
+        return new MessageHeader(messageTypeId, remainingLength);
     }
 
     private MessageType getMessageType(short messageTypeId) {

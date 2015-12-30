@@ -28,9 +28,8 @@ public class ConnectMessage implements Message {
     }
 
     @Override
-    public void resolve(byte[] messageInBytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(messageInBytes);
-        id = buffer.getInt();
+    public void resolve(byte[] message) {
+        id = ByteBuffer.wrap(message).getInt();
     }
 
     @Override

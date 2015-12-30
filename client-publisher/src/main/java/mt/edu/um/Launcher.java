@@ -32,6 +32,7 @@ public class Launcher {
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
             System.out.println("Connection result: " + socketChannel.connect(new InetSocketAddress("127.0.0.1", 3523)));
 
+            int messages = 0;
             while (true) {
                 if (selector.select() > 0) {
                     Set<SelectionKey> selectedKeys = selector.selectedKeys();
@@ -60,8 +61,11 @@ public class Launcher {
                         if (key.isValid() && key.isWritable()) {
                             SocketChannel channel = (SocketChannel) key.channel();
                             ConnectMessage connectMessage = (ConnectMessage) MessageFactory.getMessageInstance(MessageType.CONNECT);
-                            connectMessage.setId(1234);
-                            brokerProtocol.send(channel, connectMessage);
+                            connectMessage.setId(1);
+                            if(messages < 3) {
+                                brokerProtocol.send(channel, connectMessage);
+                                messages++;
+                            }
                             Thread.sleep(5000);
                         }
 

@@ -2,7 +2,6 @@ package mt.edu.um.core;
 
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
-import mt.edu.um.protocol.message.Message;
 import mt.edu.um.topictree.TopicTreeFacade;
 import mt.edu.um.topictree.TopicTreeFacadeImpl;
 import mt.edu.um.topictree.TopicTreeImpl;
@@ -57,8 +56,7 @@ public class Server {
 
                         if (key.isValid() && key.isReadable()) {
                             System.out.println("key is readable");
-                            Message message = brokerProtocol.receive((SocketChannel)key.channel());
-                            message.accept(serverMessageHandlerVisitor);
+                            brokerProtocol.receive((SocketChannel)key.channel()).stream().forEach(message -> message.accept(serverMessageHandlerVisitor));
                         }
 
                         if (key.isValid() && key.isWritable()) {

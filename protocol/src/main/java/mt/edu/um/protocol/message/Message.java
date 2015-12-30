@@ -13,7 +13,7 @@ public interface Message {
     /**
      * Resolves a message
      */
-    void resolve(byte[] messageInBytes);
+    void resolve(byte[] buffer);
 
     short getKey();
 

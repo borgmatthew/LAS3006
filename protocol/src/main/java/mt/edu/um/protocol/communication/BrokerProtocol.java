@@ -2,6 +2,7 @@ package mt.edu.um.protocol.communication;
 
 import mt.edu.um.protocol.message.Message;
 
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface BrokerProtocol {
 
-    void send(SocketChannel channel, Message message);
+    void send(SocketChannel channel, Message message) throws IOException;
 
-    List<Message> receive(SocketChannel channel);
+    List<Message> receive(SocketChannel channel) throws IOException;
 }

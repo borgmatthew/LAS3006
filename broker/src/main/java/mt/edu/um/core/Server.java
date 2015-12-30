@@ -56,7 +56,11 @@ public class Server {
 
                         if (key.isValid() && key.isReadable()) {
                             System.out.println("key is readable");
-                            brokerProtocol.receive((SocketChannel)key.channel()).stream().forEach(message -> message.accept(serverMessageHandlerVisitor));
+                            try {
+                                brokerProtocol.receive((SocketChannel)key.channel()).stream().forEach(message -> message.accept(serverMessageHandlerVisitor));
+                            } catch (IOException e) {
+                                key.cancel();
+                            }
                         }
 
                         if (key.isValid() && key.isWritable()) {

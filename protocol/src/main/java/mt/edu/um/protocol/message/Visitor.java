@@ -13,4 +13,7 @@ public interface Visitor {
     void visit(PublishMessage publishMessage);
     void visit(PubAckMessage pubAckMessage);
     void visit(PubRecMessage pubRecMessage);
+    void visit(UnsubscribeMessage unsubscribeMessage);
+    void visit(UnsubAckMessage unsubAckMessage);
+    void visit(DisconnectMessage disconnectMessage);
 }

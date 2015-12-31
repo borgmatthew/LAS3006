@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,7 +36,7 @@ public class TopicTreeImplTest {
     @Test
     public void testInsert_emptyTopicList() throws Exception {
         topicPath = new TopicPath(new ArrayList<>(0));
-        subscribers.add(new Subscriber(""));
+        subscribers.add(new Subscriber(1, LocalDateTime.now()));
 
         assertFalse(topicTree.insert(topicPath, subscribers));
     }
@@ -50,7 +51,7 @@ public class TopicTreeImplTest {
     @Test
     public void testInsert_duplicateKey() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("topicOne")));
-        subscribers.add(new Subscriber(""));
+        subscribers.add(new Subscriber(1, LocalDateTime.now()));
 
         //First insert should succeed
         assertTrue(topicTree.insert(topicPath, subscribers));
@@ -61,7 +62,7 @@ public class TopicTreeImplTest {
     @Test
     public void testInsert_multipleLevels() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        subscribers.add(new Subscriber(""));
+        subscribers.add(new Subscriber(1, LocalDateTime.now()));
 
         assertTrue(topicTree.insert(topicPath, subscribers));
     }
@@ -69,7 +70,7 @@ public class TopicTreeImplTest {
     @Test
     public void testInsert_multipleLevels_siblings() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("siblingTopic")));
-        subscribers.add(new Subscriber(""));
+        subscribers.add(new Subscriber(1, LocalDateTime.now()));
 
         assertTrue(topicTree.insert(topicPath, subscribers));
     }
@@ -84,12 +85,12 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_retrievesSubscribers() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         Set<Subscriber> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("siblingTopic")));
-        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        Subscriber subscriberTwo = new Subscriber(1, LocalDateTime.now());
         subscribersTwo.add(subscriberTwo);
 
         //Inserts should succeed
@@ -102,12 +103,12 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_retrievesSubscribersWithHashWildCard() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         Set<Subscriber> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("#")));
-        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        Subscriber subscriberTwo = new Subscriber(1, LocalDateTime.now());
         subscribersTwo.add(subscriberTwo);
 
         Set<Subscriber> result = new HashSet<>(subscribers);
@@ -123,12 +124,12 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_retrievesSubscribersWithHashWildCard_multipleLevels() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         Set<Subscriber> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("#")));
-        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        Subscriber subscriberTwo = new Subscriber(1, LocalDateTime.now());
         subscribersTwo.add(subscriberTwo);
 
         Set<Subscriber> result = new HashSet<>(subscribers);
@@ -144,12 +145,12 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_retrievesSubscribersWithPlusWildCard() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         Set<Subscriber> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("+"), new Topic("grandChild")));
-        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        Subscriber subscriberTwo = new Subscriber(1, LocalDateTime.now());
         subscribersTwo.add(subscriberTwo);
 
         Set<Subscriber> result = new HashSet<>(subscribers);
@@ -164,12 +165,12 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_plusWildCard_noMatch() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         Set<Subscriber> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("+"), new Topic("childTopic")));
-        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        Subscriber subscriberTwo = new Subscriber(1, LocalDateTime.now());
         subscribersTwo.add(subscriberTwo);
 
         //Inserts should succeed
@@ -182,12 +183,12 @@ public class TopicTreeImplTest {
     @Test
     public void testTraverse_visitsEveryNode() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         Set<Subscriber> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("+"), new Topic("childTopic")));
-        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        Subscriber subscriberTwo = new Subscriber(1, LocalDateTime.now());
         subscribersTwo.add(subscriberTwo);
 
         Consumer consumer = Mockito.mock(Consumer.class);
@@ -205,12 +206,12 @@ public class TopicTreeImplTest {
     @Test
     public void testRemove_oneNodeIsRemoved_parentContainsMoreChildren() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         Set<Subscriber> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("funTopic")));
-        Subscriber subscriberTwo = new Subscriber("subscriberTwo");
+        Subscriber subscriberTwo = new Subscriber(1, LocalDateTime.now());
         subscribersTwo.add(subscriberTwo);
 
         //Inserts should succeed
@@ -227,7 +228,7 @@ public class TopicTreeImplTest {
     @Test
     public void testRemove_emptyNodesAreRemoved() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         //Insert should succeed
@@ -243,7 +244,7 @@ public class TopicTreeImplTest {
     @Test
     public void testRemove_nodeWithNoChildren_containsSubscribers_notRemoved() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         //Insert should succeed
@@ -252,7 +253,7 @@ public class TopicTreeImplTest {
         //Add subscribers to /parentTopic/childTopic
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
         Set<Subscriber> subscribers = topicTree.get(topicPathTwo);
-        subscribers.add(new Subscriber("subscriberTwo"));
+        subscribers.add(new Subscriber(1, LocalDateTime.now()));
 
         //Remove is successful
         assertTrue(topicTree.remove(topicPath));
@@ -263,7 +264,7 @@ public class TopicTreeImplTest {
     @Test
     public void testSize_multipleNodes() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("funTopic")));
@@ -283,7 +284,7 @@ public class TopicTreeImplTest {
     @Test
     public void testGet_retrievesSameObject() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         //Insert should succeed
@@ -300,7 +301,7 @@ public class TopicTreeImplTest {
     @Test
     public void testGet_keyNotFound_emptySetIsReturned() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         //Insert should succeed
@@ -312,7 +313,7 @@ public class TopicTreeImplTest {
     @Test
     public void testContains_returnsTrueWhenObjectFound() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         //Insert should succeed
@@ -329,7 +330,7 @@ public class TopicTreeImplTest {
     @Test
     public void testContains_keyNotFound_falseIsReturned() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber("subscriber");
+        Subscriber subscriber = new Subscriber(1, LocalDateTime.now());
         subscribers.add(subscriber);
 
         //Insert should succeed

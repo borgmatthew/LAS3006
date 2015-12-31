@@ -1,14 +1,26 @@
 package mt.edu.um.subscriber;
 
+import java.time.LocalDateTime;
+
 /**
  * Created by matthew on 26/11/2015.
  */
 public class Subscriber {
 
-    private String name;
+    private int id;
+    private LocalDateTime lastActivityTime;
 
-    public Subscriber(String name) {
-        this.name = name;
+    public Subscriber(int id, LocalDateTime lastActivityTime) {
+        this.id = id;
+        this.lastActivityTime = lastActivityTime;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    protected LocalDateTime getLastActivityTime() {
+        return lastActivityTime;
     }
 
     @Override
@@ -18,12 +30,12 @@ public class Subscriber {
 
         Subscriber that = (Subscriber) o;
 
-        return !(name != null ? !name.equals(that.name) : that.name != null);
+        return id == that.id;
 
     }
 
     @Override
     public int hashCode() {
-        return name != null ? name.hashCode() : 0;
+        return id;
     }
 }

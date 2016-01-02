@@ -35,6 +35,11 @@ public class UnsubscribeMessage implements Message {
     }
 
     @Override
+    public MessageType getType() {
+        return MessageType.UNSUBSCRIBE;
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

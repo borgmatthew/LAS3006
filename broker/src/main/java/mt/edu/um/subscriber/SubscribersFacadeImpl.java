@@ -44,6 +44,21 @@ public class SubscribersFacadeImpl implements SubscribersFacade {
     }
 
     @Override
+    public boolean update(int id, LocalDateTime lastActive) {
+        try {
+            lock.writeLock().lock();
+            if (!subscribers.containsKey(id)) {
+                return false;
+            }
+
+            subscribers.get(id).setLastActivityTime(lastActive);
+            return true;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
     public Optional<Subscriber> get(int id) {
         try {
             lock.readLock().lock();

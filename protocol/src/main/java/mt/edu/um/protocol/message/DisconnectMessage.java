@@ -23,6 +23,11 @@ public class DisconnectMessage implements Message {
     }
 
     @Override
+    public MessageType getType() {
+        return MessageType.DISCONNECT;
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

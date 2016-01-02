@@ -23,6 +23,11 @@ public class Subscriber {
         return lastActivityTime;
     }
 
+    public Subscriber setLastActivityTime(LocalDateTime lastActivityTime) {
+        this.lastActivityTime = lastActivityTime;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

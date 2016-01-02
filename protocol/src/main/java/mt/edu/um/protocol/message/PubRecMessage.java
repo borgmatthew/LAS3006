@@ -43,6 +43,11 @@ public class PubRecMessage implements Message {
     }
 
     @Override
+    public MessageType getType() {
+        return MessageType.PUBREC;
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

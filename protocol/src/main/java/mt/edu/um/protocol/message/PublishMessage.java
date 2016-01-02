@@ -7,9 +7,9 @@ import java.nio.ByteBuffer;
  */
 public class PublishMessage implements Message {
 
-    int messageId;
-    String topic;
-    String payload;
+    private int messageId;
+    private String topic;
+    private String payload;
 
     protected PublishMessage() {
         messageId = -1;
@@ -46,6 +46,11 @@ public class PublishMessage implements Message {
     }
 
     @Override
+    public MessageType getType() {
+        return MessageType.PUBLISH;
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
@@ -69,6 +74,11 @@ public class PublishMessage implements Message {
 
     public PublishMessage setPayload(String payload) {
         this.payload = payload;
+        return this;
+    }
+
+    public PublishMessage setMessageId(int messageId) {
+        this.messageId = messageId;
         return this;
     }
 }

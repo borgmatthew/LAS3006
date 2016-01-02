@@ -35,6 +35,11 @@ public class SubscribeMessage implements Message {
     }
 
     @Override
+    public MessageType getType() {
+        return MessageType.SUBSCRIBE;
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

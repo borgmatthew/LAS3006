@@ -38,6 +38,11 @@ public class ConnectMessage implements Message {
     }
 
     @Override
+    public MessageType getType() {
+        return MessageType.CONNECT;
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

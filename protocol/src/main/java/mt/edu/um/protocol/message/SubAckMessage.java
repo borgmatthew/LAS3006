@@ -7,10 +7,12 @@ import java.nio.ByteBuffer;
  */
 public class SubAckMessage implements Message {
 
-    String topic;
+    private String topic;
+    private byte result;
 
     protected SubAckMessage() {
         topic = "";
+        result = (byte) 0;
     }
 
     @Override
@@ -18,6 +20,7 @@ public class SubAckMessage implements Message {
         return ByteBuffer.allocate(4 + topic.length())
                 .putInt(topic.length())
                 .put(topic.getBytes())
+                .put(result)
                 .array();
     }
 
@@ -27,11 +30,17 @@ public class SubAckMessage implements Message {
         byte[] topicBytes = new byte[buffer.getInt()];
         buffer.get(topicBytes);
         topic = new String(topicBytes);
+        result = buffer.get();
     }
 
     @Override
     public short getKey() {
         return MessageType.SUBACK.getId();
+    }
+
+    @Override
+    public MessageType getType() {
+        return MessageType.SUBACK;
     }
 
     @Override
@@ -45,6 +54,15 @@ public class SubAckMessage implements Message {
 
     public SubAckMessage setTopic(String topic) {
         this.topic = topic;
+        return this;
+    }
+
+    public boolean getResult() {
+        return result == 0 ? false : true;
+    }
+
+    public SubAckMessage setResult(boolean result) {
+        this.result = (byte) (result ? 1 : 0);
         return this;
     }
 }

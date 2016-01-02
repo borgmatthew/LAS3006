@@ -7,7 +7,8 @@ import java.nio.ByteBuffer;
  */
 public class UnsubAckMessage implements Message {
 
-    String topic;
+    private String topic;
+    private byte result;
 
     protected UnsubAckMessage() {
         topic = "";
@@ -18,6 +19,7 @@ public class UnsubAckMessage implements Message {
         return ByteBuffer.allocate(4 + topic.length())
                 .putInt(topic.length())
                 .put(topic.getBytes())
+                .put(result)
                 .array();
     }
 
@@ -27,11 +29,17 @@ public class UnsubAckMessage implements Message {
         byte[] topicBytes = new byte[buffer.getInt()];
         buffer.get(topicBytes);
         topic = new String(topicBytes);
+        result = buffer.get();
     }
 
     @Override
     public short getKey() {
         return MessageType.UNSUBACK.getId();
+    }
+
+    @Override
+    public MessageType getType() {
+        return MessageType.UNSUBACK;
     }
 
     @Override
@@ -45,6 +53,15 @@ public class UnsubAckMessage implements Message {
 
     public UnsubAckMessage setTopic(String topic) {
         this.topic = topic;
+        return this;
+    }
+
+    public boolean getResult() {
+        return result != (byte) 0;
+    }
+
+    public UnsubAckMessage setResult(boolean result) {
+        this.result = (byte) (result ? 1 : 0);
         return this;
     }
 }

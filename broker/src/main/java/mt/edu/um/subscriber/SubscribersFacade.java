@@ -1,5 +1,6 @@
 package mt.edu.um.subscriber;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,14 @@ public interface SubscribersFacade {
      * @return true on success, false if subscriber is not found
      */
     boolean unsubscribe(int id);
+
+    /**
+     * Updates the last active time for the subscriber
+     * @param id the id of the subscriber
+     * @param lastActive the time at which the last activity occured
+     * @return true on success, false on failure
+     */
+    boolean update(int id, LocalDateTime lastActive);
 
     /**
      * Retrieves a subscriber

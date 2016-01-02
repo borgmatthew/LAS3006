@@ -29,6 +29,11 @@ public class PingRespMessage implements Message {
     }
 
     @Override
+    public MessageType getType() {
+        return MessageType.PINGRESP;
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

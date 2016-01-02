@@ -17,5 +17,7 @@ public interface Message {
 
     short getKey();
 
+    MessageType getType();
+
     void accept(Visitor visitor);
 }

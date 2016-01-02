@@ -1,10 +1,8 @@
 package mt.edu.um.core;
 
+import mt.edu.um.connection.Connection;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
-import mt.edu.um.topictree.TopicTreeFacade;
-import mt.edu.um.topictree.TopicTreeFacadeImpl;
-import mt.edu.um.topictree.TopicTreeImpl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -20,13 +18,13 @@ import java.util.Set;
  */
 public class Server {
 
-    private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
+    private final MessageHandler messageHandler = new MessageHandler();
     private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
-    private final ServerMessageHandlerVisitor serverMessageHandlerVisitor = new ServerMessageHandlerVisitor();
+
 
     public void start() {
         try (Selector selector = Selector.open();
-             ServerSocketChannel socketChannel = ServerSocketChannel.open()) {
+            ServerSocketChannel socketChannel = ServerSocketChannel.open()) {
 
             socketChannel.configureBlocking(false);
             socketChannel.bind(new InetSocketAddress(3523));
@@ -45,6 +43,8 @@ public class Server {
                             SocketChannel clientChannel = serverSocketChannel.accept();
                             clientChannel.configureBlocking(false);
                             clientChannel.register(selector, SelectionKey.OP_READ);
+                            Connection connection = new Connection(key);
+                            key.attach(connection);
                             System.out.println("Client accepted!");
                         }
 
@@ -57,7 +57,7 @@ public class Server {
                         if (key.isValid() && key.isReadable()) {
                             System.out.println("key is readable");
                             try {
-                                brokerProtocol.receive((SocketChannel)key.channel()).stream().forEach(message -> message.accept(serverMessageHandlerVisitor));
+                                brokerProtocol.receive((SocketChannel) key.channel()).stream().forEach(message -> messageHandler.handleMessage(message, (Connection) key.attachment()));
                             } catch (IOException e) {
                                 key.cancel();
                             }

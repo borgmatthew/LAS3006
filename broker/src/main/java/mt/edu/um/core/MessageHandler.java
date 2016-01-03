@@ -16,13 +16,8 @@ import mt.edu.um.topictree.TopicTreeImpl;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Created by matthew on 02/01/2016.
@@ -30,6 +25,7 @@ import java.util.concurrent.Executors;
 public class MessageHandler {
 
     private final ExecutorService executorService;
+    private final ScheduledExecutorService scheduledExecutorService;
     private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
     private final SubscribersFacade subscribersFacade = new SubscribersFacadeImpl();
     private final TopicsFacade topicsFacade = new TopicsFacadeImpl();
@@ -37,6 +33,11 @@ public class MessageHandler {
 
     public MessageHandler() {
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        this.scheduledExecutorService.scheduleAtFixedRate(() -> {
+            List<Subscriber> timedOutSubscribers = subscribersFacade.getTimedOutConnections(5000L);
+            timedOutSubscribers.forEach(subscriber -> closeConnection(subscriberConnections.get(subscriber.getId())));
+        }, 5, 5, TimeUnit.SECONDS);
     }
 
     public void handleMessage(Message message, Connection origin) {
@@ -144,6 +145,10 @@ public class MessageHandler {
     }
 
     private void handle(PubRecMessage pubRecMessage, Connection origin) {
+        System.out.println(pubRecMessage.getType() + ": " + pubRecMessage.getTopic()
+        + "CLIENT: " + pubRecMessage.getClientId()
+        + "MESSAGE: " + pubRecMessage.getMessageId()
+        + "RESULT: OK");
     }
 
     private void handle(UnsubscribeMessage unsubscribeMessage, Connection origin) {

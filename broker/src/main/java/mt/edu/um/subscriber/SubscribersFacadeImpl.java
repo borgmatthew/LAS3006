@@ -13,6 +13,10 @@ public class SubscribersFacadeImpl implements SubscribersFacade {
     private ReentrantReadWriteLock lock;
     Map<Integer, Subscriber> subscribers = new HashMap<>();
 
+    public SubscribersFacadeImpl() {
+        lock = new ReentrantReadWriteLock();
+    }
+
     @Override
     public boolean subscribe(int id) {
         try {

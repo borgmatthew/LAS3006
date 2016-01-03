@@ -9,12 +9,14 @@ public class Connection {
 
     private final SelectionKey selectionKey;
     private ConnectionState state;
+    private final MessageBuffer outgoingMessages;
     private int subscriberId;
 
     public Connection(SelectionKey selectionKey) {
         this.selectionKey = selectionKey;
         this.state = ConnectionState.PENDING_CONNECTION;
         this.subscriberId = -1;
+        this.outgoingMessages = new MessageBuffer();
     }
 
     public void setState(ConnectionState state) {
@@ -36,5 +38,9 @@ public class Connection {
     public Connection setSubscriberId(int subscriberId) {
         this.subscriberId = subscriberId;
         return this;
+    }
+
+    public MessageBuffer getOutgoingMessages() {
+        return outgoingMessages;
     }
 }

@@ -15,7 +15,7 @@ import java.util.*;
 public class BrokerProtocolImpl implements BrokerProtocol {
 
     private final short HEADER_BYTES = 5;
-    private final short BODY_BYTES = 3;
+    private final short BODY_BYTES = 1024;
     private final short BUFFER_SIZE = HEADER_BYTES + BODY_BYTES;
     private final Map<SocketChannel, Client> clients = new HashMap<>();
 

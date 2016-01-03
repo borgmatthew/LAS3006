@@ -3,14 +3,13 @@ package mt.edu.um.core;
 import mt.edu.um.connection.Connection;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
+import mt.edu.um.protocol.message.Message;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -42,9 +41,9 @@ public class Server {
                             ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
                             SocketChannel clientChannel = serverSocketChannel.accept();
                             clientChannel.configureBlocking(false);
-                            clientChannel.register(selector, SelectionKey.OP_READ);
-                            Connection connection = new Connection(key);
-                            key.attach(connection);
+                            SelectionKey clientKey = clientChannel.register(selector, SelectionKey.OP_READ);
+                            Connection connection = new Connection(clientKey);
+                            clientKey.attach(connection);
                             System.out.println("Client accepted!");
                         }
 
@@ -55,7 +54,6 @@ public class Server {
                         }
 
                         if (key.isValid() && key.isReadable()) {
-                            System.out.println("key is readable");
                             try {
                                 brokerProtocol.receive((SocketChannel) key.channel()).stream().forEach(message -> messageHandler.handleMessage(message, (Connection) key.attachment()));
                             } catch (IOException e) {
@@ -65,6 +63,15 @@ public class Server {
 
                         if (key.isValid() && key.isWritable()) {
                             System.out.println("Key is writable");
+                            List<Message> outgoingMessages = ((Connection)key.attachment()).getOutgoingMessages().emptyBuffer();
+                            outgoingMessages.forEach(message -> {
+                                try {
+                                    brokerProtocol.send((SocketChannel) key.channel(), message);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                            key.interestOps(SelectionKey.OP_READ);
                         }
 
                         if (!key.isValid()) {

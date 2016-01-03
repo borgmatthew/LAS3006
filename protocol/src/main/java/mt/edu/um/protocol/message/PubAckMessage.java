@@ -35,7 +35,7 @@ public class PubAckMessage implements Message {
 
     @Override
     public short getKey() {
-        return MessageType.PUBLISH.getId();
+        return MessageType.PUBACK.getId();
     }
 
     @Override

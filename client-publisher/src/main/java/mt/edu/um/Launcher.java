@@ -51,13 +51,13 @@ public class Launcher {
                         if (key.isValid() && key.isConnectable()) {
                             SocketChannel channel = (SocketChannel) key.channel();
                             channel.finishConnect();
-                            key.interestOps(SelectionKey.OP_WRITE);
+                            key.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
                         }
 
                         if (key.isValid() && key.isReadable()) {
                             brokerProtocol.receive((SocketChannel) key.channel())
                                     .forEach(clientMessageHandler::handleMessage);
-                            key.interestOps(SelectionKey.OP_WRITE);
+//                            key.interestOps(SelectionKey.OP_WRITE);
                         }
 
                         if (key.isValid() && key.isWritable()) {
@@ -71,10 +71,11 @@ public class Launcher {
                                     System.out.println("Created connect request with id: " + ((ConnectMessage) message).getId());
                                 } else {
                                     message = generatePublishMessage();
+                                    System.out.println("Created publish request with id: " + ((PublishMessage) message).getMessageId());
                                 }
                                 brokerProtocol.send(channel, message);
                                 messages++;
-                                key.interestOps(SelectionKey.OP_READ);
+//                                key.interestOps(SelectionKey.OP_READ);
                             }
                         }
 

@@ -5,189 +5,158 @@ import mt.edu.um.connection.ConnectionState;
 import mt.edu.um.protocol.message.*;
 import mt.edu.um.subscriber.Subscriber;
 import mt.edu.um.subscriber.SubscribersFacade;
-import mt.edu.um.subscriber.SubscribersFacadeImpl;
 import mt.edu.um.topic.TopicPath;
 import mt.edu.um.topic.TopicsFacade;
-import mt.edu.um.topic.TopicsFacadeImpl;
 import mt.edu.um.topictree.TopicTreeFacade;
-import mt.edu.um.topictree.TopicTreeFacadeImpl;
-import mt.edu.um.topictree.TopicTreeImpl;
 
-import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- * Created by matthew on 02/01/2016.
+ * Created by matthew on 04/01/2016.
  */
-public class MessageHandler {
+public class MessageHandler implements Visitor {
 
-    private final ExecutorService executorService;
-    private final ScheduledExecutorService scheduledExecutorService;
-    private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
-    private final SubscribersFacade subscribersFacade = new SubscribersFacadeImpl();
-    private final TopicsFacade topicsFacade = new TopicsFacadeImpl();
-    private final SubscriberConnections subscriberConnections = new SubscriberConnections();
+    private final TopicTreeFacade topicTreeFacade;
+    private final SubscribersFacade subscribersFacade;
+    private final TopicsFacade topicsFacade;
+    private final SubscriberConnections subscriberConnections;
+    private final Connection origin;
 
-    public MessageHandler() {
-        this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        this.scheduledExecutorService.scheduleAtFixedRate(() -> {
-            List<Subscriber> timedOutSubscribers = subscribersFacade.getTimedOutConnections(5000L);
-            timedOutSubscribers.forEach(subscriber -> closeConnection(subscriberConnections.get(subscriber.getId())));
-        }, 5, 5, TimeUnit.SECONDS);
+    public MessageHandler(final TopicTreeFacade topicTreeFacade,
+                          final SubscribersFacade subscribersFacade,
+                          final TopicsFacade topicsFacade,
+                          final SubscriberConnections subscriberConnections,
+                          final Connection origin) {
+        this.topicTreeFacade = topicTreeFacade;
+        this.subscribersFacade = subscribersFacade;
+        this.topicsFacade = topicsFacade;
+        this.subscriberConnections = subscriberConnections;
+        this.origin = origin;
     }
 
-    public void handleMessage(Message message, Connection origin) {
-        switch (message.getType()) {
-            case CONNECT: {
-                handle((ConnectMessage) message, origin);
-                break;
-            }
-            case SUBSCRIBE: {
-                handle((SubscribeMessage) message, origin);
-                break;
-            }
-            case PINGREQ: {
-                handle((PingReqMessage) message, origin);
-                break;
-            }
-            case PUBLISH: {
-                handle((PublishMessage) message, origin);
-                break;
-            }
-            case PUBREC: {
-                handle((PubRecMessage) message, origin);
-                break;
-            }
-            case UNSUBSCRIBE: {
-                handle((UnsubscribeMessage) message, origin);
-                break;
-            }
-            case DISCONNECT: {
-                handle((DisconnectMessage) message, origin);
-                break;
-            }
-        }
-    }
-
-    private void handle(ConnectMessage connectMessage, Connection origin) {
+    @Override
+    public void visit(ConnectMessage connectMessage) {
         System.out.println(connectMessage.getType() + ": " + connectMessage.getId());
-        CompletableFuture.supplyAsync(() -> {
-            boolean result = subscribersFacade.subscribe(connectMessage.getId());
-            ConnAckMessage reply = ((ConnAckMessage) MessageFactory.getMessageInstance(MessageType.CONNACK))
-                    .setId(connectMessage.getId())
-                    .setResult(result);
-            origin.getOutgoingMessages().add(reply);
-            origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-            origin.getSelectionKey().selector().wakeup();
-            return reply;
-        }, executorService)
-                .thenAccept(reply -> {
-                    if (reply.getResult()) {
-                        origin.setState(ConnectionState.CONNECTED);
-                        origin.setSubscriberId(connectMessage.getId());
-                        subscriberConnections.add(connectMessage.getId(), origin);
-                    }
-                });
+        boolean result = subscribersFacade.subscribe(connectMessage.getId());
+        if (result) {
+            origin.setState(ConnectionState.CONNECTED);
+            origin.setSubscriberId(connectMessage.getId());
+            subscriberConnections.add(connectMessage.getId(), origin);
+        }
+        ConnAckMessage reply = ((ConnAckMessage) MessageFactory.getMessageInstance(MessageType.CONNACK))
+                .setId(connectMessage.getId())
+                .setResult(result);
+        origin.getOutgoingMessages().add(reply);
+        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+        origin.getSelectionKey().selector().wakeup();
     }
 
-    private void handle(SubscribeMessage subscribeMessage, Connection origin) {
+    @Override
+    public void visit(ConnAckMessage connAckMessage) {
+
+    }
+
+    @Override
+    public void visit(SubscribeMessage subscribeMessage) {
         System.out.println(subscribeMessage.getType() + ": " + subscribeMessage.getTopic());
-        CompletableFuture.supplyAsync(() -> {
-            TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
-            Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
-            boolean result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
-            SubAckMessage reply = ((SubAckMessage) MessageFactory.getMessageInstance(MessageType.SUBACK))
-                    .setTopic(subscribeMessage.getTopic())
-                    .setResult(result);
-            origin.getOutgoingMessages().add(reply);
-            origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-            origin.getSelectionKey().selector().wakeup();
-            return reply;
-        }, executorService);
+        TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
+        Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
+        boolean result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
+        SubAckMessage reply = ((SubAckMessage) MessageFactory.getMessageInstance(MessageType.SUBACK))
+                .setTopic(subscribeMessage.getTopic())
+                .setResult(result);
+        origin.getOutgoingMessages().add(reply);
+        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+        origin.getSelectionKey().selector().wakeup();
     }
 
-    private void handle(PingReqMessage pingReqMessage, Connection origin) {
+    @Override
+    public void visit(SubAckMessage subAckMessage) {
+
+    }
+
+    @Override
+    public void visit(PingReqMessage pingReqMessage) {
         System.out.println(pingReqMessage.getType() + ": " + pingReqMessage.getMessageId());
-        CompletableFuture.runAsync(() -> {
-            subscribersFacade.update(origin.getSubscriberId(), LocalDateTime.now());
-            PingRespMessage reply = ((PingRespMessage) MessageFactory.getMessageInstance(MessageType.PINGRESP))
-                    .setMessageId(pingReqMessage.getMessageId());
-            origin.getOutgoingMessages().add(reply);
-            origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-            origin.getSelectionKey().selector().wakeup();
-        }, executorService);
+        subscribersFacade.update(origin.getSubscriberId(), LocalDateTime.now());
+        PingRespMessage reply = ((PingRespMessage) MessageFactory.getMessageInstance(MessageType.PINGRESP))
+                .setMessageId(pingReqMessage.getMessageId());
+        origin.getOutgoingMessages().add(reply);
+        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+        origin.getSelectionKey().selector().wakeup();
     }
 
-    private void handle(PublishMessage publishMessage, Connection origin) {
+    @Override
+    public void visit(PingRespMessage pingRespMessage) {
+
+    }
+
+    @Override
+    public void visit(PublishMessage publishMessage) {
         System.out.println(publishMessage.getType() + ": " + publishMessage.getTopic()
                 + "\nMESSAGE: " + publishMessage.getMessageId()
                 + "\nPAYLOAD: " + publishMessage.getPayload());
-        CompletableFuture.runAsync(() -> {
-            TopicPath path = topicsFacade.convertToTopicPath(publishMessage.getTopic());
-            Set<Subscriber> subscribers = topicTreeFacade.getSubscribers(path);
-            PubAckMessage pubAckMessage = ((PubAckMessage) MessageFactory.getMessageInstance(MessageType.PUBACK))
-                    .setTopic(publishMessage.getTopic())
-                    .setMessageId(publishMessage.getMessageId());
-            subscribers.stream()
-                    .forEach(subscriber -> {
-                        Connection connection = subscriberConnections.get(subscriber.getId());
-                        connection.getOutgoingMessages().add(publishMessage);
-                        connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-                    });
-            origin.getOutgoingMessages().add(pubAckMessage);
-            origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-            origin.getSelectionKey().selector().wakeup();
-        }, executorService);
+        TopicPath path = topicsFacade.convertToTopicPath(publishMessage.getTopic());
+        Set<Subscriber> subscribers = topicTreeFacade.getSubscribers(path);
+        PubAckMessage pubAckMessage = ((PubAckMessage) MessageFactory.getMessageInstance(MessageType.PUBACK))
+                .setTopic(publishMessage.getTopic())
+                .setMessageId(publishMessage.getMessageId());
+        subscribers.stream()
+                .forEach(subscriber -> {
+                    Connection connection = subscriberConnections.get(subscriber.getId());
+                    connection.getOutgoingMessages().add(publishMessage);
+                    connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+                });
+        origin.getOutgoingMessages().add(pubAckMessage);
+        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+        origin.getSelectionKey().selector().wakeup();
     }
 
-    private void handle(PubRecMessage pubRecMessage, Connection origin) {
+    @Override
+    public void visit(PubAckMessage pubAckMessage) {
+
+    }
+
+    @Override
+    public void visit(PubRecMessage pubRecMessage) {
         System.out.println(pubRecMessage.getType() + ": " + pubRecMessage.getTopic()
-        + "CLIENT: " + pubRecMessage.getClientId()
-        + "MESSAGE: " + pubRecMessage.getMessageId()
-        + "RESULT: OK");
+                + "CLIENT: " + pubRecMessage.getClientId()
+                + "MESSAGE: " + pubRecMessage.getMessageId()
+                + "RESULT: OK");
     }
 
-    private void handle(UnsubscribeMessage unsubscribeMessage, Connection origin) {
+    @Override
+    public void visit(UnsubscribeMessage unsubscribeMessage) {
         System.out.println(unsubscribeMessage.getType() + ": " + unsubscribeMessage.getTopic());
-        CompletableFuture.supplyAsync(() -> {
-            TopicPath path = topicsFacade.convertToTopicPath(unsubscribeMessage.getTopic());
-            Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
-            boolean result;
-            if (subscriberOptional.isPresent()) {
-                result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());
-            } else {
-                result = false;
-            }
-            UnsubAckMessage unsubAckMessage = ((UnsubAckMessage) MessageFactory.getMessageInstance(MessageType.UNSUBACK))
-                    .setTopic(unsubscribeMessage.getTopic())
-                    .setResult(result);
-            origin.getOutgoingMessages().add(unsubscribeMessage);
-            origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-            origin.getSelectionKey().selector().wakeup();
-            return unsubAckMessage;
-        }, executorService);
-    }
-
-    private void handle(DisconnectMessage disconnectMessage, Connection origin) {
-        System.out.println(disconnectMessage.getType());
-        closeConnection(origin);
-    }
-
-    public void closeConnection(Connection connection) {
-        CompletableFuture.runAsync(() -> {
-            subscribersFacade.unsubscribe(connection.getSubscriberId());
-            //TODO: unsubscribe this subscriber from every topic
-        }, executorService);
-        subscriberConnections.remove(connection.getSubscriberId());
-        try {
-            connection.getSelectionKey().channel().close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        TopicPath path = topicsFacade.convertToTopicPath(unsubscribeMessage.getTopic());
+        Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
+        boolean result;
+        if (subscriberOptional.isPresent()) {
+            result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());
+        } else {
+            result = false;
         }
+        UnsubAckMessage unsubAckMessage = ((UnsubAckMessage) MessageFactory.getMessageInstance(MessageType.UNSUBACK))
+                .setTopic(unsubscribeMessage.getTopic())
+                .setResult(result);
+        origin.getOutgoingMessages().add(unsubscribeMessage);
+        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+        origin.getSelectionKey().selector().wakeup();
     }
 
+    @Override
+    public void visit(UnsubAckMessage unsubAckMessage) {
+
+    }
+
+    @Override
+    public void visit(DisconnectMessage disconnectMessage) {
+        System.out.println(disconnectMessage.getType());
+        origin.getSelectionKey().cancel();
+    }
 }

@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class Server {
 
-    private final MessageHandler messageHandler = new MessageHandler();
+    private final EventHandler eventHandler = new EventHandler();
     private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
 
 
@@ -55,7 +55,8 @@ public class Server {
 
                         if (key.isValid() && key.isReadable()) {
                             try {
-                                brokerProtocol.receive((SocketChannel) key.channel()).stream().forEach(message -> messageHandler.handleMessage(message, (Connection) key.attachment()));
+                                ((Connection) key.attachment()).getIncomingMessages().addAll(brokerProtocol.receive((SocketChannel) key.channel()));
+                                eventHandler.handleMessages((Connection) key.attachment());
                             } catch (IOException e) {
                                 key.cancel();
                             }

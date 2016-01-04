@@ -36,4 +36,10 @@ public class MessageBuffer {
         }
         return result;
     }
+
+    public Message getNext() {
+        synchronized (this) {
+            return this.messages.remove(0);
+        }
+    }
 }

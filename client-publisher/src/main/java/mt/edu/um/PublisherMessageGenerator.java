@@ -38,12 +38,8 @@ public class PublisherMessageGenerator implements MessageGenerator {
         PublishMessage publishMessage = (PublishMessage) MessageFactory.getMessageInstance(MessageType.PUBLISH);
         publishMessage.setTopic(publishTopic)
                 .setMessageId(new Random().nextInt())
-                .setPayload(generateRandomSentence());
+                .setPayload(new RandomSentenceGenerator().generate(new Random().nextInt(19)+1));
         return publishMessage;
-    }
-
-    private String generateRandomSentence() {
-        return "random sentence";
     }
 
     private ConnectMessage generateConnectMessage() {

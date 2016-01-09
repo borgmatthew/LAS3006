@@ -77,7 +77,7 @@ public class ClientMessageHandler implements Visitor {
     public void visit(PubAckMessage pubAckMessage) {
         System.out.println(pubAckMessage.getType() + ": " + pubAckMessage.getTopic()
                 + "\nMESSAGE: " + pubAckMessage.getMessageId()
-                + "\nRESULT: " + pubAckMessage.getResult()
+                + "\nRESULT: " + (pubAckMessage.getResult() ? "OK" : "ERROR")
                 + "\n");
     }
 

@@ -25,7 +25,8 @@ public class ClientMessageHandler implements Visitor {
     @Override
     public void visit(ConnAckMessage connAckMessage) {
         System.out.println(connAckMessage.getType() + ": " + connAckMessage.getId()
-                + "\nRESULT: " + (connAckMessage.getResult() ? "OK" : "ERROR"));
+                + "\nRESULT: " + (connAckMessage.getResult() ? "OK" : "ERROR")
+                + "\n");
         if (connAckMessage.getResult()) {
             connection.setState(ConnectionState.CONNECTED);
             connection.setSubscriberId(connAckMessage.getId());
@@ -42,7 +43,8 @@ public class ClientMessageHandler implements Visitor {
     @Override
     public void visit(SubAckMessage subAckMessage) {
         System.out.println(subAckMessage.getType() + ": " + subAckMessage.getTopic()
-                + "\nRESULT: " + (subAckMessage.getResult() ? "OK" : "ERROR"));
+                + "\nRESULT: " + (subAckMessage.getResult() ? "OK" : "ERROR")
+                + "\n");
     }
 
     @Override
@@ -52,14 +54,15 @@ public class ClientMessageHandler implements Visitor {
 
     @Override
     public void visit(PingRespMessage pingRespMessage) {
-        System.out.println(pingRespMessage.getType() + ": " + pingRespMessage.getMessageId());
+        System.out.println(pingRespMessage.getType() + ": " + pingRespMessage.getMessageId() + "\n");
     }
 
     @Override
     public void visit(PublishMessage publishMessage) {
         System.out.println(publishMessage.getType() + ": " + publishMessage.getTopic()
                 + "\nMESSAGE: " + publishMessage.getMessageId()
-                + "\nPAYLOAD: " + publishMessage.getPayload());
+                + "\nPAYLOAD: " + publishMessage.getPayload()
+                + "\n");
         PubRecMessage pubRecMessage = (PubRecMessage) MessageFactory.getMessageInstance(MessageType.PUBREC);
         pubRecMessage.setClientId(connection.getSubscriberId())
                 .setMessageId(publishMessage.getMessageId())
@@ -74,7 +77,8 @@ public class ClientMessageHandler implements Visitor {
     public void visit(PubAckMessage pubAckMessage) {
         System.out.println(pubAckMessage.getType() + ": " + pubAckMessage.getTopic()
                 + "\nMESSAGE: " + pubAckMessage.getMessageId()
-                + "\nRESULT: " + pubAckMessage.getResult());
+                + "\nRESULT: " + pubAckMessage.getResult()
+                + "\n");
     }
 
     @Override
@@ -90,7 +94,7 @@ public class ClientMessageHandler implements Visitor {
     @Override
     public void visit(UnsubAckMessage unsubAckMessage) {
         System.out.println(unsubAckMessage.getType() + ": " + unsubAckMessage.getTopic()
-                + "\nRESULT: " + unsubAckMessage.getResult());
+                + "\nRESULT: " + unsubAckMessage.getResult() + "\n");
     }
 
     @Override

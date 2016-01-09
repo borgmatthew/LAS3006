@@ -3,7 +3,7 @@ package mt.edu.um;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
 import mt.edu.um.protocol.connection.Connection;
-import mt.edu.um.protocol.message.*;
+import mt.edu.um.protocol.message.Message;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -11,20 +11,13 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.Random;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * Created by matthew on 16/12/2015.
  */
 public class Client {
-
-    public static PublishMessage generatePublishMessage() {
-        return ((PublishMessage) MessageFactory.getMessageInstance(MessageType.PUBLISH))
-                .setMessageId(new Random().nextInt())
-                .setTopic("/home/test/kitchen")
-                .setPayload("Testing the kitchen");
-    }
 
     private final MessageGenerator messageGenerator;
     private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
@@ -38,14 +31,16 @@ public class Client {
              Selector selector = Selector.open()) {
 
             socketChannel.configureBlocking(false);
-            System.out.println("Trying to connect to server...");
 
-            socketChannel.register(selector, SelectionKey.OP_CONNECT);
+            SelectionKey registeredKey = socketChannel.register(selector, SelectionKey.OP_CONNECT);
             socketChannel.connect(new InetSocketAddress(serverIp, serverPort));
+
+            final Connection serverConnection = new Connection(registeredKey);
+            registeredKey.attach(serverConnection);
 
             boolean shutdown = false;
             while (!shutdown) {
-                if (selector.select() > 0) {
+                if (selector.select(5000) > 0) {
                     Set<SelectionKey> selectedKeys = selector.selectedKeys();
                     Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
 
@@ -56,14 +51,16 @@ public class Client {
                         if (key.isValid() && key.isConnectable()) {
                             SocketChannel channel = (SocketChannel) key.channel();
                             channel.finishConnect();
-                            Connection connection = new Connection(key);
-                            key.attach(connection);
-                            key.interestOps(SelectionKey.OP_WRITE);
+                            key.interestOps(SelectionKey.OP_READ);
                         }
 
                         if (key.isValid() && key.isReadable()) {
-                            brokerProtocol.receive((SocketChannel) key.channel())
-                                    .forEach(message -> message.accept(new ClientMessageHandler((Connection)key.attachment())));
+                            try {
+                                brokerProtocol.receive((SocketChannel) key.channel())
+                                        .forEach(message -> message.accept(new ClientMessageHandler((Connection) key.attachment())));
+                            } catch (IOException e) {
+                                key.cancel();
+                            }
                         }
 
                         if (key.isValid() && key.isWritable()) {
@@ -76,6 +73,7 @@ public class Client {
                                     e.printStackTrace();
                                 }
                             });
+                            key.interestOps(SelectionKey.OP_READ);
                         }
 
                         if (!key.isValid()) {
@@ -84,6 +82,13 @@ public class Client {
                             channel.close();
                             shutdown = true;
                         }
+                    }
+                } else {
+                    Optional<Message> generatedMessage = messageGenerator.generate(serverConnection);
+                    if (generatedMessage.isPresent()) {
+                        serverConnection.getOutgoingMessages().add(generatedMessage.get());
+                        serverConnection.getSelectionKey().interestOps(serverConnection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+                        serverConnection.getSelectionKey().selector().wakeup();
                     }
                 }
             }

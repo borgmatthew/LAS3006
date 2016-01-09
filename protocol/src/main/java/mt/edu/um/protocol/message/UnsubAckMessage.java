@@ -16,7 +16,7 @@ public class UnsubAckMessage implements Message {
 
     @Override
     public byte[] build() {
-        return ByteBuffer.allocate(4 + topic.length())
+        return ByteBuffer.allocate(5 + topic.length())
                 .putInt(topic.length())
                 .put(topic.getBytes())
                 .put(result)

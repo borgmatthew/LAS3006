@@ -44,7 +44,6 @@ public class Server {
                             SelectionKey clientKey = clientChannel.register(selector, SelectionKey.OP_READ);
                             Connection connection = new Connection(clientKey);
                             clientKey.attach(connection);
-                            System.out.println("Client accepted!");
                         }
 
                         if (key.isValid() && key.isReadable()) {
@@ -57,7 +56,6 @@ public class Server {
                         }
 
                         if (key.isValid() && key.isWritable()) {
-                            System.out.println("Key is writable");
                             List<Message> outgoingMessages = ((Connection)key.attachment()).getOutgoingMessages().emptyBuffer();
                             outgoingMessages.forEach(message -> {
                                 try {
@@ -70,10 +68,7 @@ public class Server {
                         }
 
                         if (!key.isValid()) {
-                            System.out.println("Key is not valid");
-                            SocketChannel channel = (SocketChannel) key.channel();
-                            key.cancel();
-                            channel.close();
+                            eventHandler.closeConnection((Connection)key.attachment());
                         }
 
                     }

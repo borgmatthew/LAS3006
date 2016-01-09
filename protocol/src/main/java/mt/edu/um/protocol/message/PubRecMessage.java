@@ -21,7 +21,7 @@ public class PubRecMessage implements Message {
 
     @Override
     public byte[] build() {
-        return ByteBuffer.allocate(12 + topic.length())
+        return ByteBuffer.allocate(13 + topic.length())
                 .putInt(topic.length())
                 .put(topic.getBytes())
                 .putInt(clientId)

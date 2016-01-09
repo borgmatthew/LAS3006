@@ -19,7 +19,7 @@ public class PubAckMessage implements Message {
 
     @Override
     public byte[] build() {
-        return ByteBuffer.allocate(8 + topic.length())
+        return ByteBuffer.allocate(9 + topic.length())
                 .putInt(messageId)
                 .putInt(topic.length())
                 .put(topic.getBytes())

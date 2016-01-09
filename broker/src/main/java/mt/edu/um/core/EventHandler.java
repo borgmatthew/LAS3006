@@ -46,19 +46,20 @@ public class EventHandler {
 
     public void closeConnection(Connection connection) {
         CompletableFuture.runAsync(() -> {
+            System.out.println("Disconnecting client " + connection.getSubscriberId() + "\n");
             Optional<Subscriber> subscriberOptional = subscribersFacade.get(connection.getSubscriberId());
             if(subscriberOptional.isPresent()) {
                 connection.getOutgoingMessages().emptyBuffer();
                 subscriberTopics.getTopics(subscriberOptional.get().getId()).forEach(topic -> topicTreeFacade.unsubscribe(topic, subscriberOptional.get()));
                 subscribersFacade.unsubscribe(subscriberOptional.get().getId());
             }
+            subscriberConnections.remove(connection.getSubscriberId());
+            try {
+                connection.getSelectionKey().channel().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }, executorService);
-        subscriberConnections.remove(connection.getSubscriberId());
-        try {
-            connection.getSelectionKey().channel().close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

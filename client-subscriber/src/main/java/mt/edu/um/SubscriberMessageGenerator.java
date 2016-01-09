@@ -12,6 +12,13 @@ import java.util.Random;
  */
 public class SubscriberMessageGenerator implements MessageGenerator {
 
+    private final String subscribeTopic;
+    private boolean subscribeMessageSent = false;
+
+    public SubscriberMessageGenerator(String subscribeTopic) {
+        this.subscribeTopic = subscribeTopic;
+    }
+
     @Override
     public Optional<Message> generate(Connection connection) {
         if (connection.getState().equals(ConnectionState.NOT_CONNECTED)) {
@@ -23,8 +30,12 @@ public class SubscriberMessageGenerator implements MessageGenerator {
             //Connect message is still being processed
             return Optional.empty();
         } else {
-            PingReqMessage pingReqMessage = generatePingRequest();
-            return Optional.of(pingReqMessage);
+            if (!subscribeMessageSent) {
+                subscribeMessageSent = true;
+                return Optional.of(generateSubscribeMessage());
+            } else {
+                return Optional.of(generatePingRequest());
+            }
         }
     }
 
@@ -32,6 +43,12 @@ public class SubscriberMessageGenerator implements MessageGenerator {
         PingReqMessage pingReqMessage = (PingReqMessage) MessageFactory.getMessageInstance(MessageType.PINGREQ);
         pingReqMessage.setMessageId(new Random().nextInt());
         return pingReqMessage;
+    }
+
+    private SubscribeMessage generateSubscribeMessage() {
+        SubscribeMessage subscribeMessage = (SubscribeMessage) MessageFactory.getMessageInstance(MessageType.SUBSCRIBE);
+        subscribeMessage.setTopic(subscribeTopic);
+        return subscribeMessage;
     }
 
     private ConnectMessage generateConnectMessage() {

@@ -30,7 +30,7 @@ public class ClientMessageHandler implements Visitor {
             connection.setState(ConnectionState.CONNECTED);
             connection.setSubscriberId(connAckMessage.getId());
         } else {
-            connection.setState(ConnectionState.PENDING_CONNECTION);
+            connection.setState(ConnectionState.NOT_CONNECTED);
         }
     }
 

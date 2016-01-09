@@ -15,7 +15,7 @@ public class Connection {
 
     public Connection(SelectionKey selectionKey) {
         this.selectionKey = selectionKey;
-        this.state = ConnectionState.PENDING_CONNECTION;
+        this.state = ConnectionState.NOT_CONNECTED;
         this.subscriberId = -1;
         this.outgoingMessages = new MessageBuffer();
         this.incomingMessages = new MessageBuffer();

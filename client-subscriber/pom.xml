@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>mt.edu.um</groupId>
-            <artifactId>protocol</artifactId>
+            <artifactId>client</artifactId>
             <version>TRUNK</version>
         </dependency>
     </dependencies>

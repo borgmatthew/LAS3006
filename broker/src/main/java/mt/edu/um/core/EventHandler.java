@@ -13,6 +13,7 @@ import mt.edu.um.topictree.TopicTreeImpl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 /**
@@ -25,7 +26,9 @@ public class EventHandler {
     private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
     private final SubscribersFacade subscribersFacade = new SubscribersFacadeImpl();
     private final TopicsFacade topicsFacade = new TopicsFacadeImpl();
-    private final SubscriberConnections subscriberConnections = new SubscriberConnections();
+    private final ConcurrentHashMap<Integer, Connection> subscriberConnections = new ConcurrentHashMap<>();
+    private final SubscriberTopics subscriberTopics = new SubscriberTopics();
+
 
     public EventHandler() {
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -38,14 +41,17 @@ public class EventHandler {
 
     public void handleMessages(Connection origin) {
         List<Message> messages = origin.getIncomingMessages().emptyBuffer();
-        messages.stream().forEach(message -> CompletableFuture.runAsync(() -> message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, subscriberConnections, origin)), executorService));
+        messages.stream().forEach(message -> CompletableFuture.runAsync(() -> message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, subscriberConnections, subscriberTopics, origin)), executorService));
     }
 
     public void closeConnection(Connection connection) {
         CompletableFuture.runAsync(() -> {
-            subscribersFacade.unsubscribe(connection.getSubscriberId());
-            connection.getOutgoingMessages().emptyBuffer();
-            //TODO: unsubscribe this subscriber from every topic
+            Optional<Subscriber> subscriberOptional = subscribersFacade.get(connection.getSubscriberId());
+            if(subscriberOptional.isPresent()) {
+                connection.getOutgoingMessages().emptyBuffer();
+                subscriberTopics.getTopics(subscriberOptional.get().getId()).forEach(topic -> topicTreeFacade.unsubscribe(topic, subscriberOptional.get()));
+                subscribersFacade.unsubscribe(subscriberOptional.get().getId());
+            }
         }, executorService);
         subscriberConnections.remove(connection.getSubscriberId());
         try {

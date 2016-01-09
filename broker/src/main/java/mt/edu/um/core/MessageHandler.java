@@ -11,10 +11,8 @@ import mt.edu.um.topictree.TopicTreeFacade;
 
 import java.nio.channels.SelectionKey;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by matthew on 04/01/2016.
@@ -24,18 +22,21 @@ public class MessageHandler implements Visitor {
     private final TopicTreeFacade topicTreeFacade;
     private final SubscribersFacade subscribersFacade;
     private final TopicsFacade topicsFacade;
-    private final SubscriberConnections subscriberConnections;
+    private final ConcurrentHashMap<Integer, Connection> subscriberConnections;
+    private final SubscriberTopics subscriberTopics;
     private final Connection origin;
 
     public MessageHandler(final TopicTreeFacade topicTreeFacade,
                           final SubscribersFacade subscribersFacade,
                           final TopicsFacade topicsFacade,
-                          final SubscriberConnections subscriberConnections,
+                          final ConcurrentHashMap<Integer, Connection> subscriberConnections,
+                          final SubscriberTopics subscriberTopics,
                           final Connection origin) {
         this.topicTreeFacade = topicTreeFacade;
         this.subscribersFacade = subscribersFacade;
         this.topicsFacade = topicsFacade;
         this.subscriberConnections = subscriberConnections;
+        this.subscriberTopics = subscriberTopics;
         this.origin = origin;
     }
 
@@ -46,7 +47,7 @@ public class MessageHandler implements Visitor {
         if (result) {
             origin.setState(ConnectionState.CONNECTED);
             origin.setSubscriberId(connectMessage.getId());
-            subscriberConnections.add(connectMessage.getId(), origin);
+            subscriberConnections.put(connectMessage.getId(), origin);
         }
         ConnAckMessage reply = ((ConnAckMessage) MessageFactory.getMessageInstance(MessageType.CONNACK))
                 .setId(connectMessage.getId())
@@ -67,6 +68,9 @@ public class MessageHandler implements Visitor {
         TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
         Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
         boolean result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
+        if (result) {
+            subscriberTopics.addTopic(subscriberOptional.get().getId(), path);
+        }
         SubAckMessage reply = ((SubAckMessage) MessageFactory.getMessageInstance(MessageType.SUBACK))
                 .setTopic(subscribeMessage.getTopic())
                 .setResult(result);
@@ -138,6 +142,7 @@ public class MessageHandler implements Visitor {
         boolean result;
         if (subscriberOptional.isPresent()) {
             result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());
+            subscriberTopics.removeTopic(subscriberOptional.get().getId(), path);
         } else {
             result = false;
         }

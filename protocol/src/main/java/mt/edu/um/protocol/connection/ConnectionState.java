@@ -1,4 +1,4 @@
-package mt.edu.um.connection;
+package mt.edu.um.protocol.connection;
 
 /**
  * Created by matthew on 02/01/2016.

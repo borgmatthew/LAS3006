@@ -1,6 +1,6 @@
 package mt.edu.um.core;
 
-import mt.edu.um.connection.Connection;
+import mt.edu.um.protocol.connection.Connection;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
 import mt.edu.um.protocol.message.Message;
@@ -45,12 +45,6 @@ public class Server {
                             Connection connection = new Connection(clientKey);
                             clientKey.attach(connection);
                             System.out.println("Client accepted!");
-                        }
-
-                        if (key.isValid() && key.isConnectable()) {
-                            SocketChannel channel = (SocketChannel) key.channel();
-                            channel.finishConnect();
-                            key.interestOps(SelectionKey.OP_READ);
                         }
 
                         if (key.isValid() && key.isReadable()) {

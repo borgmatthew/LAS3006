@@ -1,4 +1,4 @@
-package mt.edu.um.connection;
+package mt.edu.um.protocol.connection;
 
 import mt.edu.um.protocol.message.Message;
 

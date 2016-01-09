@@ -10,11 +10,13 @@ public class PubRecMessage implements Message {
     int messageId;
     int clientId;
     String topic;
+    byte result;
 
     protected PubRecMessage() {
         messageId = -1;
         topic = "";
         clientId = -1;
+        result = (byte) 0;
     }
 
     @Override
@@ -24,6 +26,7 @@ public class PubRecMessage implements Message {
                 .put(topic.getBytes())
                 .putInt(clientId)
                 .putInt(messageId)
+                .put(result)
                 .array();
     }
 
@@ -35,6 +38,7 @@ public class PubRecMessage implements Message {
         topic = new String(topicBytes);
         clientId = buffer.getInt();
         messageId = buffer.getInt();
+        result = buffer.get();
     }
 
     @Override
@@ -77,5 +81,14 @@ public class PubRecMessage implements Message {
 
     public int getClientId() {
         return clientId;
+    }
+
+    public boolean getResult() {
+        return result == (byte) 1;
+    }
+
+    public PubRecMessage setResult(boolean result) {
+        this.result = (byte) (result ? 1 : 0);
+        return this;
     }
 }

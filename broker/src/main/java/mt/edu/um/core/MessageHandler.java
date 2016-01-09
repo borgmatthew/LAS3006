@@ -1,7 +1,7 @@
 package mt.edu.um.core;
 
-import mt.edu.um.connection.Connection;
-import mt.edu.um.connection.ConnectionState;
+import mt.edu.um.protocol.connection.Connection;
+import mt.edu.um.protocol.connection.ConnectionState;
 import mt.edu.um.protocol.message.*;
 import mt.edu.um.subscriber.Subscriber;
 import mt.edu.um.subscriber.SubscribersFacade;
@@ -109,7 +109,8 @@ public class MessageHandler implements Visitor {
         Set<Subscriber> subscribers = topicTreeFacade.getSubscribers(path);
         PubAckMessage pubAckMessage = ((PubAckMessage) MessageFactory.getMessageInstance(MessageType.PUBACK))
                 .setTopic(publishMessage.getTopic())
-                .setMessageId(publishMessage.getMessageId());
+                .setMessageId(publishMessage.getMessageId())
+                .setResult(true);
         subscribers.stream()
                 .forEach(subscriber -> {
                     Connection connection = subscriberConnections.get(subscriber.getId());
@@ -131,7 +132,7 @@ public class MessageHandler implements Visitor {
         System.out.println(pubRecMessage.getType() + ": " + pubRecMessage.getTopic()
                 + "CLIENT: " + pubRecMessage.getClientId()
                 + "MESSAGE: " + pubRecMessage.getMessageId()
-                + "RESULT: OK");
+                + "RESULT: " + pubRecMessage.getResult());
     }
 
     @Override

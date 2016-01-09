@@ -1,6 +1,6 @@
 package mt.edu.um.core;
 
-import mt.edu.um.connection.Connection;
+import mt.edu.um.protocol.connection.Connection;
 import mt.edu.um.protocol.message.Message;
 import mt.edu.um.subscriber.Subscriber;
 import mt.edu.um.subscriber.SubscribersFacade;

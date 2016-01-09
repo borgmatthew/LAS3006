@@ -10,6 +10,7 @@
     <version>TRUNK</version>
     <modules>
         <module>broker</module>
+        <module>client</module>
         <module>client-publisher</module>
         <module>client-subscriber</module>
         <module>protocol</module>

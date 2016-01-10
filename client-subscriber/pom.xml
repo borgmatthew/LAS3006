@@ -19,4 +19,31 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec.mave.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>subscriber</executable>
+                    <mainClass>mt.edu.um.Launcher</mainClass>
+                    <arguments>
+                        <argument>-serverIp=${default.server.ip}</argument>
+                        <argument>-serverPort=${default.server.port}</argument>
+                        <argument>-subscribeTopic=${default.subscribe.topic}</argument>
+                        <argument>-messageFrequency=${default.message.frequency}</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

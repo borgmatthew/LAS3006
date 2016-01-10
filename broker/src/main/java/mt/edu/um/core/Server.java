@@ -20,16 +20,23 @@ import java.util.Set;
  */
 public class Server {
 
-    private final EventHandler eventHandler = new EventHandler();
+    private final EventHandler eventHandler;
     private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
+    private final int port;
+    private final int maxInactiveMinutes;
 
+    public Server(int port, int maxInactiveMinutes) {
+        this.port = port;
+        this.maxInactiveMinutes = maxInactiveMinutes;
+        this.eventHandler = new EventHandler(maxInactiveMinutes);
+    }
 
     public void start() {
         try (Selector selector = Selector.open();
             ServerSocketChannel socketChannel = ServerSocketChannel.open()) {
 
             socketChannel.configureBlocking(false);
-            socketChannel.bind(new InetSocketAddress(3523));
+            socketChannel.bind(new InetSocketAddress(port));
             socketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
             while (true) {

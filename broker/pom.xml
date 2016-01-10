@@ -29,9 +29,30 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-
-
     </dependencies>
 
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec.mave.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>broker</executable>
+                    <mainClass>mt.edu.um.core.Launcher</mainClass>
+                    <arguments>
+                        <argument>-serverPort=${default.server.port}</argument>
+                        <argument>-maxInactiveMinutes=${default.client.inactive.minutes}</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

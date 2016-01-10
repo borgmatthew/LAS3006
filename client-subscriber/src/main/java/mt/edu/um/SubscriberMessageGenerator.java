@@ -41,7 +41,7 @@ public class SubscriberMessageGenerator implements MessageGenerator {
 
     private PingReqMessage generatePingRequest() {
         PingReqMessage pingReqMessage = (PingReqMessage) MessageFactory.getMessageInstance(MessageType.PINGREQ);
-        pingReqMessage.setMessageId(new Random().nextInt());
+        pingReqMessage.setMessageId(Math.abs(new Random().nextInt()));
         return pingReqMessage;
     }
 
@@ -53,7 +53,7 @@ public class SubscriberMessageGenerator implements MessageGenerator {
 
     private ConnectMessage generateConnectMessage() {
         ConnectMessage connectMessage = (ConnectMessage) MessageFactory.getMessageInstance(MessageType.CONNECT);
-        connectMessage.setId(new Random().nextInt());
+        connectMessage.setId(Math.abs(new Random().nextInt()));
         return connectMessage;
     }
 }

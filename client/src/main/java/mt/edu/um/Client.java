@@ -20,9 +20,11 @@ public class Client {
 
     private final MessageGenerator messageGenerator;
     private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
+    private final int messageFrequencyInSeconds;
 
-    public Client(final MessageGenerator messageGenerator) {
+    public Client(final MessageGenerator messageGenerator, final int messageFrequencyInSeconds) {
         this.messageGenerator = messageGenerator;
+        this.messageFrequencyInSeconds = messageFrequencyInSeconds;
     }
 
     public void run(final String serverIp, final int serverPort) {
@@ -39,7 +41,7 @@ public class Client {
 
             ScheduledMessageGenerator scheduledMessageGenerator = new ScheduledMessageGenerator(messageGenerator, serverConnection);
             final Timer timer = new Timer();
-            timer.schedule(scheduledMessageGenerator, 0L, 1000L);
+            timer.schedule(scheduledMessageGenerator, 0L, messageFrequencyInSeconds * 1000L);
 
             boolean shutdown = false;
             while (!shutdown) {

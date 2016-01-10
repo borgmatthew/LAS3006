@@ -37,14 +37,14 @@ public class PublisherMessageGenerator implements MessageGenerator {
     private PublishMessage generatePublishMessage() {
         PublishMessage publishMessage = (PublishMessage) MessageFactory.getMessageInstance(MessageType.PUBLISH);
         publishMessage.setTopic(publishTopic)
-                .setMessageId(new Random().nextInt())
+                .setMessageId(Math.abs(new Random().nextInt()))
                 .setPayload(new RandomSentenceGenerator().generate(new Random().nextInt(19)+1));
         return publishMessage;
     }
 
     private ConnectMessage generateConnectMessage() {
         ConnectMessage connectMessage = (ConnectMessage) MessageFactory.getMessageInstance(MessageType.CONNECT);
-        connectMessage.setId(new Random().nextInt());
+        connectMessage.setId(Math.abs(new Random().nextInt()));
         return connectMessage;
     }
 }

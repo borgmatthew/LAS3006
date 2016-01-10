@@ -31,14 +31,14 @@ public class EventHandler {
     private final SubscriberTopics subscriberTopics = new SubscriberTopics();
 
 
-    public EventHandler() {
+    public EventHandler(int maxInactiveMinutes) {
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
             System.out.println("Checking for timed out connections...");
-            List<Subscriber> timedOutSubscribers = subscribersFacade.getTimedOutConnections(5L);
+            List<Subscriber> timedOutSubscribers = subscribersFacade.getTimedOutConnections(maxInactiveMinutes * 60 * 1000);
             timedOutSubscribers.forEach(subscriber -> closeConnection(subscriberConnections.get(subscriber.getId())));
-        }, 5, 5, TimeUnit.SECONDS);
+        }, maxInactiveMinutes, (maxInactiveMinutes-1), TimeUnit.MINUTES);
     }
 
     public void handleMessages(Connection origin) {

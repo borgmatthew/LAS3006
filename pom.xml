@@ -20,6 +20,7 @@
         <java.version.source>1.8</java.version.source>
         <java.version.target>1.8</java.version.target>
         <mockito.version>1.9.5</mockito.version>
+        <junit.version>4.11</junit.version>
     </properties>
 
     <build>

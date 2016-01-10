@@ -23,7 +23,7 @@ public class Subscriber {
         return lastActivityTime;
     }
 
-    public Subscriber setLastActivityTime(LocalDateTime lastActivityTime) {
+    protected Subscriber setLastActivityTime(LocalDateTime lastActivityTime) {
         this.lastActivityTime = lastActivityTime;
         return this;
     }

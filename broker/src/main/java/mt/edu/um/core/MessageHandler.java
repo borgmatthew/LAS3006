@@ -152,7 +152,7 @@ public class MessageHandler implements Visitor {
         UnsubAckMessage unsubAckMessage = ((UnsubAckMessage) MessageFactory.getMessageInstance(MessageType.UNSUBACK))
                 .setTopic(unsubscribeMessage.getTopic())
                 .setResult(result);
-        origin.getOutgoingMessages().add(unsubscribeMessage);
+        origin.getOutgoingMessages().add(unsubAckMessage);
         origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
         origin.getSelectionKey().selector().wakeup();
     }

@@ -12,6 +12,7 @@ import mt.edu.um.topictree.TopicTreeFacadeImpl;
 import mt.edu.um.topictree.TopicTreeImpl;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -34,14 +35,19 @@ public class EventHandler {
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
-            List<Subscriber> timedOutSubscribers = subscribersFacade.getTimedOutConnections(5000L);
+            System.out.println("Checking for timed out connections...");
+            List<Subscriber> timedOutSubscribers = subscribersFacade.getTimedOutConnections(5L);
             timedOutSubscribers.forEach(subscriber -> closeConnection(subscriberConnections.get(subscriber.getId())));
         }, 5, 5, TimeUnit.SECONDS);
     }
 
     public void handleMessages(Connection origin) {
         List<Message> messages = origin.getIncomingMessages().emptyBuffer();
-        messages.stream().forEach(message -> CompletableFuture.runAsync(() -> message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, subscriberConnections, subscriberTopics, origin)), executorService));
+        messages.stream()
+                .forEach(message -> CompletableFuture.runAsync(() -> {
+                    message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, subscriberConnections, subscriberTopics, origin));
+                    subscribersFacade.update(origin.getSubscriberId(), LocalDateTime.now());
+                }, executorService));
     }
 
     public void closeConnection(Connection connection) {

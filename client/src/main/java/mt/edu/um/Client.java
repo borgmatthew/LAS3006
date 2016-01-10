@@ -3,7 +3,6 @@ package mt.edu.um;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
 import mt.edu.um.protocol.connection.Connection;
-import mt.edu.um.protocol.message.Message;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -11,8 +10,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
+import java.util.Timer;
 
 /**
  * Created by matthew on 16/12/2015.
@@ -38,9 +37,13 @@ public class Client {
             final Connection serverConnection = new Connection(registeredKey);
             registeredKey.attach(serverConnection);
 
+            ScheduledMessageGenerator scheduledMessageGenerator = new ScheduledMessageGenerator(messageGenerator, serverConnection);
+            final Timer timer = new Timer();
+            timer.schedule(scheduledMessageGenerator, 0L, 1000L);
+
             boolean shutdown = false;
             while (!shutdown) {
-                if (selector.select(5000) > 0) {
+                if (selector.select() > 0) {
                     Set<SelectionKey> selectedKeys = selector.selectedKeys();
                     Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
 
@@ -78,17 +81,11 @@ public class Client {
 
                         if (!key.isValid()) {
                             System.out.println("Closing connection.\nBye.");
+                            timer.cancel();
                             SocketChannel channel = (SocketChannel) key.channel();
                             channel.close();
                             shutdown = true;
                         }
-                    }
-                } else {
-                    Optional<Message> generatedMessage = messageGenerator.generate(serverConnection);
-                    if (generatedMessage.isPresent()) {
-                        serverConnection.getOutgoingMessages().add(generatedMessage.get());
-                        serverConnection.getSelectionKey().interestOps(serverConnection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-                        serverConnection.getSelectionKey().selector().wakeup();
                     }
                 }
             }

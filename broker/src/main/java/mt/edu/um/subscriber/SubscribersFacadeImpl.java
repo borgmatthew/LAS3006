@@ -2,11 +2,9 @@ package mt.edu.um.subscriber;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 
 /**
  * Created by matthew on 13/12/2015.
@@ -28,7 +26,7 @@ public class SubscribersFacadeImpl implements SubscribersFacade {
                 return false;
             }
 
-            subscribers.put(id, new Subscriber(id, LocalDateTime.now()));
+            subscribers.put(id, new Subscriber(id));
             return true;
         } finally {
             lock.writeLock().unlock();
@@ -58,7 +56,6 @@ public class SubscribersFacadeImpl implements SubscribersFacade {
                 return false;
             }
 
-            subscribers.get(id).setLastActivityTime(lastActive);
             return true;
         } finally {
             lock.writeLock().unlock();
@@ -76,22 +73,6 @@ public class SubscribersFacadeImpl implements SubscribersFacade {
             return Optional.of(subscribers.get(id));
         } finally {
             lock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public List<Subscriber> getTimedOutConnections(long seconds) {
-        try {
-            lock.writeLock().lock();
-            LocalDateTime now = LocalDateTime.now();
-
-            return subscribers.entrySet().stream()
-                    .filter(entry -> now.minusSeconds(seconds).isAfter(entry.getValue().getLastActivityTime()))
-                    .map(entry -> entry.getValue())
-                    .collect(Collectors.toList());
-
-        } finally {
-            lock.writeLock().unlock();
         }
     }
 }

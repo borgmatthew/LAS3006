@@ -23,29 +23,22 @@ import java.util.concurrent.*;
 public class EventHandler {
 
     private final ExecutorService executorService;
-    private final ScheduledExecutorService scheduledExecutorService;
     private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
     private final SubscribersFacade subscribersFacade = new SubscribersFacadeImpl();
     private final TopicsFacade topicsFacade = new TopicsFacadeImpl();
-    private final ConcurrentHashMap<Integer, Connection> subscriberConnections = new ConcurrentHashMap<>();
+    private final ConnectionManager connectionManager;
     private final SubscriberTopics subscriberTopics = new SubscriberTopics();
 
-
-    public EventHandler(int maxInactiveMinutes) {
+    public EventHandler(ConnectionManager connectionManager) {
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        this.scheduledExecutorService.scheduleAtFixedRate(() -> {
-            System.out.println("Checking for timed out connections...");
-            List<Subscriber> timedOutSubscribers = subscribersFacade.getTimedOutConnections(maxInactiveMinutes * 60 * 1000);
-            timedOutSubscribers.forEach(subscriber -> closeConnection(subscriberConnections.get(subscriber.getId())));
-        }, maxInactiveMinutes, (maxInactiveMinutes-1), TimeUnit.MINUTES);
+        this.connectionManager = connectionManager;
     }
 
     public void handleMessages(Connection origin) {
         List<Message> messages = origin.getIncomingMessages().emptyBuffer();
         messages.stream()
                 .forEach(message -> CompletableFuture.runAsync(() -> {
-                    message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, subscriberConnections, subscriberTopics, origin));
+                    message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, connectionManager, subscriberTopics, origin));
                     subscribersFacade.update(origin.getSubscriberId(), LocalDateTime.now());
                 }, executorService));
     }
@@ -59,7 +52,7 @@ public class EventHandler {
                 subscriberTopics.getTopics(subscriberOptional.get().getId()).forEach(topic -> topicTreeFacade.unsubscribe(topic, subscriberOptional.get()));
                 subscribersFacade.unsubscribe(subscriberOptional.get().getId());
             }
-            subscriberConnections.remove(connection.getSubscriberId());
+            connectionManager.removeConnection(connection);
             try {
                 connection.getSelectionKey().channel().close();
             } catch (IOException e) {

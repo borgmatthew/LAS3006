@@ -41,7 +41,7 @@ public class Client {
 
             ScheduledMessageGenerator scheduledMessageGenerator = new ScheduledMessageGenerator(messageGenerator, serverConnection);
             final Timer timer = new Timer();
-            timer.schedule(scheduledMessageGenerator, 0L, messageFrequencyInSeconds * 1000L);
+            timer.schedule(scheduledMessageGenerator, 0L, (long)messageFrequencyInSeconds * 1000L);
 
             boolean shutdown = false;
             while (!shutdown) {

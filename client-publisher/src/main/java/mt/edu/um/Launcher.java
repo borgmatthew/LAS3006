@@ -72,7 +72,7 @@ public class Launcher {
 
             String messageFrequencyProperty = System.getProperty("messageFrequency");
             if(messageFrequencyProperty != null) {
-                serverPort = Integer.parseInt(messageFrequencyProperty);
+                messageFrequency = Integer.parseInt(messageFrequencyProperty);
             }
         }
 

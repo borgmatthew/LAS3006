@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by matthew on 04/01/2016.
@@ -25,20 +24,20 @@ public class MessageHandler implements Visitor {
     private final TopicTreeFacade topicTreeFacade;
     private final SubscribersFacade subscribersFacade;
     private final TopicsFacade topicsFacade;
-    private final ConcurrentHashMap<Integer, Connection> subscriberConnections;
+    private final ConnectionManager connectionManager;
     private final SubscriberTopics subscriberTopics;
     private final Connection origin;
 
     public MessageHandler(final TopicTreeFacade topicTreeFacade,
                           final SubscribersFacade subscribersFacade,
                           final TopicsFacade topicsFacade,
-                          final ConcurrentHashMap<Integer, Connection> subscriberConnections,
+                          final ConnectionManager connetionManager,
                           final SubscriberTopics subscriberTopics,
                           final Connection origin) {
         this.topicTreeFacade = topicTreeFacade;
         this.subscribersFacade = subscribersFacade;
         this.topicsFacade = topicsFacade;
-        this.subscriberConnections = subscriberConnections;
+        this.connectionManager = connetionManager;
         this.subscriberTopics = subscriberTopics;
         this.origin = origin;
     }
@@ -50,7 +49,7 @@ public class MessageHandler implements Visitor {
         if (result) {
             origin.setState(ConnectionState.CONNECTED);
             origin.setSubscriberId(connectMessage.getId());
-            subscriberConnections.put(connectMessage.getId(), origin);
+            connectionManager.assign(connectMessage.getId(), origin);
         }
         ConnAckMessage reply = ((ConnAckMessage) MessageFactory.getMessageInstance(MessageType.CONNACK))
                 .setId(connectMessage.getId())
@@ -117,7 +116,7 @@ public class MessageHandler implements Visitor {
                 .setResult(true);
         subscribers.stream()
                 .forEach(subscriber -> {
-                    Connection connection = subscriberConnections.get(subscriber.getId());
+                    Connection connection = connectionManager.getConnection(subscriber.getId());
                     connection.getOutgoingMessages().add(publishMessage);
                     connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
                 });

@@ -11,6 +11,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -24,11 +25,15 @@ public class Server {
     private final BrokerProtocol brokerProtocol = new BrokerProtocolImpl();
     private final int port;
     private final int maxInactiveMinutes;
+    private final ConnectionManager connectionManager;
+    private long nextConnectionExpiry;
 
     public Server(int port, int maxInactiveMinutes) {
         this.port = port;
         this.maxInactiveMinutes = maxInactiveMinutes;
-        this.eventHandler = new EventHandler(maxInactiveMinutes);
+        this.connectionManager = new ConnectionManager();
+        this.eventHandler = new EventHandler(connectionManager);
+        this.nextConnectionExpiry = maxInactiveMinutes * 60 * 1000;
     }
 
     public void start() {
@@ -40,7 +45,7 @@ public class Server {
             socketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
             while (true) {
-                if (selector.select() > 0) {
+                if (selector.select(nextConnectionExpiry) > 0) {
                     Set<SelectionKey> selectedKeys = selector.selectedKeys();
                     Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
                     while (keyIterator.hasNext()) {
@@ -53,13 +58,16 @@ public class Server {
                             clientChannel.configureBlocking(false);
                             SelectionKey clientKey = clientChannel.register(selector, SelectionKey.OP_READ);
                             Connection connection = new Connection(clientKey);
+                            connectionManager.addConnection(connection);
                             clientKey.attach(connection);
                         }
 
                         if (key.isValid() && key.isReadable()) {
                             try {
-                                ((Connection) key.attachment()).getIncomingMessages().addAll(brokerProtocol.receive((SocketChannel) key.channel()));
-                                eventHandler.handleMessages((Connection) key.attachment());
+                                Connection connection = (Connection) key.attachment();
+                                connection.setLastActive(Instant.now());
+                                connection.getIncomingMessages().addAll(brokerProtocol.receive((SocketChannel) key.channel()));
+                                eventHandler.handleMessages(connection);
                             } catch (IOException e) {
                                 key.cancel();
                             }
@@ -71,7 +79,7 @@ public class Server {
                                 try {
                                     brokerProtocol.send((SocketChannel) key.channel(), message);
                                 } catch (IOException e) {
-                                    e.printStackTrace();
+                                    key.cancel();
                                 }
                             });
                             key.interestOps(SelectionKey.OP_READ);
@@ -83,6 +91,12 @@ public class Server {
 
                     }
                 }
+
+                connectionManager.getTimedOutConnections(Instant.now().getEpochSecond() - (maxInactiveMinutes * 60))
+                        .stream()
+                        .forEach(eventHandler::closeConnection);
+                final long nowInSeconds = Instant.now().getEpochSecond();
+                nextConnectionExpiry = ((connectionManager.getLastEntry().orElse(nowInSeconds) + maxInactiveMinutes * 60) - nowInSeconds) * 1000L;
             }
         } catch (IOException e) {
             e.printStackTrace();

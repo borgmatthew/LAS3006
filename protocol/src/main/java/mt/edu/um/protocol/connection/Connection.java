@@ -1,6 +1,7 @@
 package mt.edu.um.protocol.connection;
 
 import java.nio.channels.SelectionKey;
+import java.time.Instant;
 
 /**
  * Created by matthew on 02/01/2016.
@@ -12,6 +13,7 @@ public class Connection {
     private final MessageBuffer outgoingMessages;
     private final MessageBuffer incomingMessages;
     private int subscriberId;
+    private Instant lastActive;
 
     public Connection(SelectionKey selectionKey) {
         this.selectionKey = selectionKey;
@@ -19,6 +21,7 @@ public class Connection {
         this.subscriberId = -1;
         this.outgoingMessages = new MessageBuffer();
         this.incomingMessages = new MessageBuffer();
+        this.lastActive = Instant.now();
     }
 
     public void setState(ConnectionState state) {
@@ -48,5 +51,14 @@ public class Connection {
 
     public MessageBuffer getIncomingMessages() {
         return incomingMessages;
+    }
+
+    public Instant getLastActive() {
+        return lastActive;
+    }
+
+    public Connection setLastActive(Instant lastActive) {
+        this.lastActive = lastActive;
+        return this;
     }
 }

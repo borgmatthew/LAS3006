@@ -1,31 +1,18 @@
 package mt.edu.um.subscriber;
 
-import java.time.LocalDateTime;
-
 /**
  * Created by matthew on 26/11/2015.
  */
 public class Subscriber {
 
     private int id;
-    private LocalDateTime lastActivityTime;
 
-    public Subscriber(int id, LocalDateTime lastActivityTime) {
+    public Subscriber(int id) {
         this.id = id;
-        this.lastActivityTime = lastActivityTime;
     }
 
     public int getId() {
         return id;
-    }
-
-    protected LocalDateTime getLastActivityTime() {
-        return lastActivityTime;
-    }
-
-    protected Subscriber setLastActivityTime(LocalDateTime lastActivityTime) {
-        this.lastActivityTime = lastActivityTime;
-        return this;
     }
 
     @Override

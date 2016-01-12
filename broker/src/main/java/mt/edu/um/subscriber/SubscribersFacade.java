@@ -1,7 +1,6 @@
 package mt.edu.um.subscriber;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,15 +36,5 @@ public interface SubscribersFacade {
      * @return a subscriber if found
      */
     Optional<Subscriber> get(int id);
-
-    /**
-     * Iterates through the list of current subscribers and compiles
-     * a list of timed out connections, i.e. connections over which the
-     * last reported activity is more than X seconds ago.
-     * @param seconds the maximum number of seconds that the subscribers can
-     *                remain unactive.
-     * @return a list of subscribers which where timed out.
-     */
-    List<Subscriber> getTimedOutConnections(long seconds);
 
 }

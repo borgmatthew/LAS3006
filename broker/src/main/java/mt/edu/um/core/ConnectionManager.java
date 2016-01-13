@@ -2,36 +2,28 @@ package mt.edu.um.core;
 
 import mt.edu.um.protocol.connection.Connection;
 
+import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by matthew on 12/01/2016.
  */
 public class ConnectionManager {
-    private final ConcurrentHashMap<Integer, Connection> subscriberConnections = new ConcurrentHashMap<>();
-    private final SortedMap<Long, Connection> connectionList = Collections.synchronizedSortedMap(new TreeMap<>((o1, o2) -> Math.negateExact(o1.compareTo(o2))));
-
-    public ConnectionManager() {
-    }
+    private final SortedMap<Long, Connection> connectionList = new TreeMap<>((o1, o2) -> Math.negateExact(o1.compareTo(o2)));
 
     public void addConnection(Connection connection) {
-        connectionList.put(connection.getLastActive().getEpochSecond(), connection);
+        connectionList.put(connection.getLastActive().toEpochMilli(), connection);
     }
 
     public void removeConnection(Connection connection) {
-        if (subscriberConnections.contains(connection.getSubscriberId())) {
-            subscriberConnections.remove(connection.getSubscriberId());
-        }
-        connectionList.remove(connection.getLastActive().getEpochSecond());
+        connectionList.remove(connection.getLastActive().toEpochMilli());
     }
 
-    public void assign(int subscriberId, Connection connection) {
-        subscriberConnections.put(subscriberId, connection);
-    }
-
-    public Connection getConnection(int subscriberId) {
-        return subscriberConnections.get(subscriberId);
+    public void update(Connection connection) {
+        connectionList.remove(connection.getLastActive().toEpochMilli());
+        Instant lastActiveTime = Instant.now();
+        connection.setLastActive(lastActiveTime);
+        connectionList.put(lastActiveTime.toEpochMilli(), connection);
     }
 
     public Optional<Long> getLastEntry() {

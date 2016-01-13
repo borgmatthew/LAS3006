@@ -92,11 +92,12 @@ public class Server {
                     }
                 }
 
-                connectionManager.getTimedOutConnections(Instant.now().getEpochSecond() - (maxInactiveMinutes * 60))
+                final long nowInMillis = Instant.now().toEpochMilli();
+                connectionManager.getTimedOutConnections(nowInMillis - (maxInactiveMinutes * 60 * 1000L))
                         .stream()
                         .forEach(eventHandler::closeConnection);
-                final long nowInSeconds = Instant.now().getEpochSecond();
-                nextConnectionExpiry = ((connectionManager.getLastEntry().orElse(nowInSeconds) + maxInactiveMinutes * 60) - nowInSeconds) * 1000L;
+
+                nextConnectionExpiry = (connectionManager.getLastEntry().orElse(nowInMillis) + maxInactiveMinutes * 60) - nowInMillis;
             }
         } catch (IOException e) {
             e.printStackTrace();

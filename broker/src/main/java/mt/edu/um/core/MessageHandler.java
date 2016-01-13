@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by matthew on 04/01/2016.
@@ -23,18 +24,18 @@ public class MessageHandler implements Visitor {
     private final TopicTreeFacade topicTreeFacade;
     private final SubscribersFacade subscribersFacade;
     private final TopicsFacade topicsFacade;
-    private final ConnectionManager connectionManager;
+    private final ConcurrentHashMap<Integer, Connection> connectionMapper;
     private final Connection origin;
 
     public MessageHandler(final TopicTreeFacade topicTreeFacade,
                           final SubscribersFacade subscribersFacade,
                           final TopicsFacade topicsFacade,
-                          final ConnectionManager connectionManager,
+                          final  ConcurrentHashMap<Integer, Connection> connectionMapper,
                           final Connection origin) {
         this.topicTreeFacade = topicTreeFacade;
         this.subscribersFacade = subscribersFacade;
         this.topicsFacade = topicsFacade;
-        this.connectionManager = connectionManager;
+        this.connectionMapper = connectionMapper;
         this.origin = origin;
     }
 
@@ -51,7 +52,7 @@ public class MessageHandler implements Visitor {
                 //Update connection
                 origin.setState(ConnectionState.CONNECTED);
                 origin.setSubscriberId(connectMessage.getId());
-                connectionManager.assign(connectMessage.getId(), origin);
+                connectionMapper.put(connectMessage.getId(), origin);
             }
         }
 
@@ -119,7 +120,7 @@ public class MessageHandler implements Visitor {
             Set<Subscriber> subscribers = topicTreeFacade.getSubscribers(path);
             subscribers.stream()
                     .forEach(subscriber -> {
-                        Connection connection = connectionManager.getConnection(subscriber.getId());
+                        Connection connection = connectionMapper.get(subscriber.getId());
                         connection.getOutgoingMessages().add(publishMessage);
                         connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
                     });

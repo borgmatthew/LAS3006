@@ -1,11 +1,17 @@
 package mt.edu.um.subscriber;
 
+import mt.edu.um.topic.TopicPath;
+
+import java.util.List;
+import java.util.Vector;
+
 /**
  * Created by matthew on 26/11/2015.
  */
 public class Subscriber {
 
     private int id;
+    private List<TopicPath> topics = new Vector<>();
 
     public Subscriber(int id) {
         this.id = id;
@@ -13,6 +19,10 @@ public class Subscriber {
 
     public int getId() {
         return id;
+    }
+
+    public List<TopicPath> getTopics() {
+        return topics;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package mt.edu.um.subscriber;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,14 +11,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class SubscribersFacadeImpl implements SubscribersFacade {
 
     private ReentrantReadWriteLock lock;
-    Map<Integer, Subscriber> subscribers = new HashMap<>();
+    private final Map<Integer, Subscriber> subscribers = new HashMap<>();
 
     public SubscribersFacadeImpl() {
         lock = new ReentrantReadWriteLock();
     }
 
     @Override
-    public boolean subscribe(int id) {
+    public boolean create(int id) {
         try {
             lock.writeLock().lock();
             if (subscribers.containsKey(id)) {
@@ -34,7 +33,7 @@ public class SubscribersFacadeImpl implements SubscribersFacade {
     }
 
     @Override
-    public boolean unsubscribe(int id) {
+    public boolean remove(int id) {
         try {
             lock.writeLock().lock();
             if (!subscribers.containsKey(id)) {
@@ -42,20 +41,6 @@ public class SubscribersFacadeImpl implements SubscribersFacade {
             }
 
             subscribers.remove(id);
-            return true;
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean update(int id, LocalDateTime lastActive) {
-        try {
-            lock.writeLock().lock();
-            if (!subscribers.containsKey(id)) {
-                return false;
-            }
-
             return true;
         } finally {
             lock.writeLock().unlock();

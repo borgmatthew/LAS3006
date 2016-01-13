@@ -12,10 +12,11 @@ import mt.edu.um.topictree.TopicTreeFacadeImpl;
 import mt.edu.um.topictree.TopicTreeImpl;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by matthew on 02/01/2016.
@@ -27,7 +28,6 @@ public class EventHandler {
     private final SubscribersFacade subscribersFacade = new SubscribersFacadeImpl();
     private final TopicsFacade topicsFacade = new TopicsFacadeImpl();
     private final ConnectionManager connectionManager;
-    private final SubscriberTopics subscriberTopics = new SubscriberTopics();
 
     public EventHandler(ConnectionManager connectionManager) {
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -38,8 +38,7 @@ public class EventHandler {
         List<Message> messages = origin.getIncomingMessages().emptyBuffer();
         messages.stream()
                 .forEach(message -> CompletableFuture.runAsync(() -> {
-                    message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, connectionManager, subscriberTopics, origin));
-                    subscribersFacade.update(origin.getSubscriberId(), LocalDateTime.now());
+                    message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, connectionManager, origin));
                 }, executorService));
     }
 
@@ -49,8 +48,8 @@ public class EventHandler {
             Optional<Subscriber> subscriberOptional = subscribersFacade.get(connection.getSubscriberId());
             if(subscriberOptional.isPresent()) {
                 connection.getOutgoingMessages().emptyBuffer();
-                subscriberTopics.getTopics(subscriberOptional.get().getId()).forEach(topic -> topicTreeFacade.unsubscribe(topic, subscriberOptional.get()));
-                subscribersFacade.unsubscribe(subscriberOptional.get().getId());
+                subscriberOptional.get().getTopics().stream().forEach(topic -> topicTreeFacade.unsubscribe(topic, subscriberOptional.get()));
+                subscribersFacade.remove(subscriberOptional.get().getId());
             }
             connectionManager.removeConnection(connection);
             try {

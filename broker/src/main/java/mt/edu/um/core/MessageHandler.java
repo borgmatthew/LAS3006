@@ -10,7 +10,6 @@ import mt.edu.um.topic.TopicsFacade;
 import mt.edu.um.topictree.TopicTreeFacade;
 
 import java.nio.channels.SelectionKey;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
@@ -25,27 +24,24 @@ public class MessageHandler implements Visitor {
     private final SubscribersFacade subscribersFacade;
     private final TopicsFacade topicsFacade;
     private final ConnectionManager connectionManager;
-    private final SubscriberTopics subscriberTopics;
     private final Connection origin;
 
     public MessageHandler(final TopicTreeFacade topicTreeFacade,
                           final SubscribersFacade subscribersFacade,
                           final TopicsFacade topicsFacade,
                           final ConnectionManager connetionManager,
-                          final SubscriberTopics subscriberTopics,
                           final Connection origin) {
         this.topicTreeFacade = topicTreeFacade;
         this.subscribersFacade = subscribersFacade;
         this.topicsFacade = topicsFacade;
         this.connectionManager = connetionManager;
-        this.subscriberTopics = subscriberTopics;
         this.origin = origin;
     }
 
     @Override
     public void visit(ConnectMessage connectMessage) {
         System.out.println(connectMessage.getType() + ": " + connectMessage.getId() + "\n");
-        boolean result = subscribersFacade.subscribe(connectMessage.getId());
+        boolean result = subscribersFacade.create(connectMessage.getId());
         if (result) {
             origin.setState(ConnectionState.CONNECTED);
             origin.setSubscriberId(connectMessage.getId());
@@ -54,9 +50,7 @@ public class MessageHandler implements Visitor {
         ConnAckMessage reply = ((ConnAckMessage) MessageFactory.getMessageInstance(MessageType.CONNACK))
                 .setId(connectMessage.getId())
                 .setResult(result);
-        origin.getOutgoingMessages().add(reply);
-        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-        origin.getSelectionKey().selector().wakeup();
+        sendMessage(reply);
     }
 
     @Override
@@ -67,18 +61,21 @@ public class MessageHandler implements Visitor {
     @Override
     public void visit(SubscribeMessage subscribeMessage) {
         System.out.println(subscribeMessage.getType() + ": " + subscribeMessage.getTopic() + "\n");
-        TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
         Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
-        boolean result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
-        if (result) {
-            subscriberTopics.addTopic(subscriberOptional.get().getId(), path);
+        boolean result = false;
+
+        if (subscriberOptional.isPresent()) {
+            TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
+            result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
+            if (result) {
+                subscriberOptional.get().getTopics().add(path);
+            }
         }
+
         SubAckMessage reply = ((SubAckMessage) MessageFactory.getMessageInstance(MessageType.SUBACK))
                 .setTopic(subscribeMessage.getTopic())
                 .setResult(result);
-        origin.getOutgoingMessages().add(reply);
-        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-        origin.getSelectionKey().selector().wakeup();
+        sendMessage(reply);
     }
 
     @Override
@@ -89,12 +86,9 @@ public class MessageHandler implements Visitor {
     @Override
     public void visit(PingReqMessage pingReqMessage) {
         System.out.println(pingReqMessage.getType() + ": " + pingReqMessage.getMessageId() + "\n");
-        subscribersFacade.update(origin.getSubscriberId(), LocalDateTime.now());
         PingRespMessage reply = ((PingRespMessage) MessageFactory.getMessageInstance(MessageType.PINGRESP))
                 .setMessageId(pingReqMessage.getMessageId());
-        origin.getOutgoingMessages().add(reply);
-        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-        origin.getSelectionKey().selector().wakeup();
+        sendMessage(reply);
     }
 
     @Override
@@ -120,9 +114,7 @@ public class MessageHandler implements Visitor {
                     connection.getOutgoingMessages().add(publishMessage);
                     connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
                 });
-        origin.getOutgoingMessages().add(pubAckMessage);
-        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-        origin.getSelectionKey().selector().wakeup();
+        sendMessage(pubAckMessage);
     }
 
     @Override
@@ -147,16 +139,14 @@ public class MessageHandler implements Visitor {
         boolean result;
         if (subscriberOptional.isPresent()) {
             result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());
-            subscriberTopics.removeTopic(subscriberOptional.get().getId(), path);
+            subscriberOptional.get().getTopics().remove(path);
         } else {
             result = false;
         }
         UnsubAckMessage unsubAckMessage = ((UnsubAckMessage) MessageFactory.getMessageInstance(MessageType.UNSUBACK))
                 .setTopic(unsubscribeMessage.getTopic())
                 .setResult(result);
-        origin.getOutgoingMessages().add(unsubAckMessage);
-        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-        origin.getSelectionKey().selector().wakeup();
+        sendMessage(unsubAckMessage);
     }
 
     @Override
@@ -168,5 +158,11 @@ public class MessageHandler implements Visitor {
     public void visit(DisconnectMessage disconnectMessage) {
         System.out.println(disconnectMessage.getType() + "\n");
         origin.getSelectionKey().cancel();
+    }
+
+    private void sendMessage(Message reply) {
+        origin.getOutgoingMessages().add(reply);
+        origin.getSelectionKey().interestOps(origin.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+        origin.getSelectionKey().selector().wakeup();
     }
 }

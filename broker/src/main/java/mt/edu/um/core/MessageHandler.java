@@ -29,24 +29,32 @@ public class MessageHandler implements Visitor {
     public MessageHandler(final TopicTreeFacade topicTreeFacade,
                           final SubscribersFacade subscribersFacade,
                           final TopicsFacade topicsFacade,
-                          final ConnectionManager connetionManager,
+                          final ConnectionManager connectionManager,
                           final Connection origin) {
         this.topicTreeFacade = topicTreeFacade;
         this.subscribersFacade = subscribersFacade;
         this.topicsFacade = topicsFacade;
-        this.connectionManager = connetionManager;
+        this.connectionManager = connectionManager;
         this.origin = origin;
     }
 
     @Override
     public void visit(ConnectMessage connectMessage) {
         System.out.println(connectMessage.getType() + ": " + connectMessage.getId() + "\n");
-        boolean result = subscribersFacade.create(connectMessage.getId());
-        if (result) {
-            origin.setState(ConnectionState.CONNECTED);
-            origin.setSubscriberId(connectMessage.getId());
-            connectionManager.assign(connectMessage.getId(), origin);
+        boolean result = false;
+
+        //Check if client is already connected
+        if (origin.getState() == ConnectionState.NOT_CONNECTED) {
+            //Create subscriber
+            result = subscribersFacade.create(connectMessage.getId());
+            if (result) {
+                //Update connection
+                origin.setState(ConnectionState.CONNECTED);
+                origin.setSubscriberId(connectMessage.getId());
+                connectionManager.assign(connectMessage.getId(), origin);
+            }
         }
+
         ConnAckMessage reply = ((ConnAckMessage) MessageFactory.getMessageInstance(MessageType.CONNACK))
                 .setId(connectMessage.getId())
                 .setResult(result);
@@ -61,14 +69,16 @@ public class MessageHandler implements Visitor {
     @Override
     public void visit(SubscribeMessage subscribeMessage) {
         System.out.println(subscribeMessage.getType() + ": " + subscribeMessage.getTopic() + "\n");
-        Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
         boolean result = false;
 
-        if (subscriberOptional.isPresent()) {
-            TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
-            result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
-            if (result) {
-                subscriberOptional.get().getTopics().add(path);
+        if (origin.getState() == ConnectionState.CONNECTED) {
+            Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
+            if (subscriberOptional.isPresent()) {
+                TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
+                result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
+                if (result) {
+                    subscriberOptional.get().getTopics().add(path);
+                }
             }
         }
 
@@ -102,18 +112,26 @@ public class MessageHandler implements Visitor {
                 + "\nMESSAGE: " + publishMessage.getMessageId()
                 + "\nPAYLOAD: " + publishMessage.getPayload()
                 + "\n");
-        TopicPath path = topicsFacade.convertToTopicPath(publishMessage.getTopic());
-        Set<Subscriber> subscribers = topicTreeFacade.getSubscribers(path);
+        boolean result = false;
+
+        if (origin.getState() == ConnectionState.CONNECTED) {
+            TopicPath path = topicsFacade.convertToTopicPath(publishMessage.getTopic());
+            Set<Subscriber> subscribers = topicTreeFacade.getSubscribers(path);
+            subscribers.stream()
+                    .forEach(subscriber -> {
+                        Connection connection = connectionManager.getConnection(subscriber.getId());
+                        connection.getOutgoingMessages().add(publishMessage);
+                        connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+                    });
+            result = true;
+        }
+
         PubAckMessage pubAckMessage = ((PubAckMessage) MessageFactory.getMessageInstance(MessageType.PUBACK))
                 .setTopic(publishMessage.getTopic())
                 .setMessageId(publishMessage.getMessageId())
-                .setResult(true);
-        subscribers.stream()
-                .forEach(subscriber -> {
-                    Connection connection = connectionManager.getConnection(subscriber.getId());
-                    connection.getOutgoingMessages().add(publishMessage);
-                    connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
-                });
+                .setResult(result);
+
+        //The selector is interrupted only once when sending the pubAckMessage
         sendMessage(pubAckMessage);
     }
 
@@ -134,15 +152,18 @@ public class MessageHandler implements Visitor {
     @Override
     public void visit(UnsubscribeMessage unsubscribeMessage) {
         System.out.println(unsubscribeMessage.getType() + ": " + unsubscribeMessage.getTopic() + "\n");
-        TopicPath path = topicsFacade.convertToTopicPath(unsubscribeMessage.getTopic());
-        Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
-        boolean result;
-        if (subscriberOptional.isPresent()) {
-            result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());
-            subscriberOptional.get().getTopics().remove(path);
-        } else {
-            result = false;
+        boolean result = false;
+
+        if(origin.getState() == ConnectionState.CONNECTED) {
+            TopicPath path = topicsFacade.convertToTopicPath(unsubscribeMessage.getTopic());
+            Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
+
+            if (subscriberOptional.isPresent()) {
+                result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());
+                subscriberOptional.get().getTopics().remove(path);
+            }
         }
+
         UnsubAckMessage unsubAckMessage = ((UnsubAckMessage) MessageFactory.getMessageInstance(MessageType.UNSUBACK))
                 .setTopic(unsubscribeMessage.getTopic())
                 .setResult(result);

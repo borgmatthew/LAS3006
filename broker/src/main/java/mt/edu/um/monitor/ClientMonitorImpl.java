@@ -26,12 +26,12 @@ public class ClientMonitorImpl implements ClientMonitor {
 
     @Override
     public int getPublishedMessagesCount() {
-        return client.getPublishedMessages();
+        return client.getPublishedMessages().get();
     }
 
     @Override
     public int getReceivedMessagesCount() {
-        return client.getReceivedMessages();
+        return client.getReceivedMessages().get();
     }
 
     @Override

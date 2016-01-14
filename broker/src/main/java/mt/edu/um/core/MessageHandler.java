@@ -3,8 +3,8 @@ package mt.edu.um.core;
 import mt.edu.um.protocol.connection.Connection;
 import mt.edu.um.protocol.connection.ConnectionState;
 import mt.edu.um.protocol.message.*;
-import mt.edu.um.subscriber.Subscriber;
-import mt.edu.um.subscriber.SubscribersFacade;
+import mt.edu.um.client.Client;
+import mt.edu.um.client.ClientsFacade;
 import mt.edu.um.topic.TopicPath;
 import mt.edu.um.topic.TopicsFacade;
 import mt.edu.um.topictree.TopicTreeFacade;
@@ -22,18 +22,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MessageHandler implements Visitor {
 
     private final TopicTreeFacade topicTreeFacade;
-    private final SubscribersFacade subscribersFacade;
+    private final ClientsFacade clientsFacade;
     private final TopicsFacade topicsFacade;
     private final ConcurrentHashMap<Integer, Connection> connectionMapper;
     private final Connection origin;
 
     public MessageHandler(final TopicTreeFacade topicTreeFacade,
-                          final SubscribersFacade subscribersFacade,
+                          final ClientsFacade clientsFacade,
                           final TopicsFacade topicsFacade,
                           final  ConcurrentHashMap<Integer, Connection> connectionMapper,
                           final Connection origin) {
         this.topicTreeFacade = topicTreeFacade;
-        this.subscribersFacade = subscribersFacade;
+        this.clientsFacade = clientsFacade;
         this.topicsFacade = topicsFacade;
         this.connectionMapper = connectionMapper;
         this.origin = origin;
@@ -47,11 +47,11 @@ public class MessageHandler implements Visitor {
         //Check if client is already connected
         if (origin.getState() == ConnectionState.NOT_CONNECTED) {
             //Create subscriber
-            result = subscribersFacade.create(connectMessage.getId());
+            result = clientsFacade.create(connectMessage.getId());
             if (result) {
                 //Update connection
                 origin.setState(ConnectionState.CONNECTED);
-                origin.setSubscriberId(connectMessage.getId());
+                origin.setClientId(connectMessage.getId());
                 connectionMapper.put(connectMessage.getId(), origin);
             }
         }
@@ -73,7 +73,7 @@ public class MessageHandler implements Visitor {
         boolean result = false;
 
         if (origin.getState() == ConnectionState.CONNECTED) {
-            Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
+            Optional<Client> subscriberOptional = clientsFacade.get(origin.getClientId());
             if (subscriberOptional.isPresent()) {
                 TopicPath path = topicsFacade.convertToTopicPath(subscribeMessage.getTopic());
                 result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
@@ -117,8 +117,8 @@ public class MessageHandler implements Visitor {
 
         if (origin.getState() == ConnectionState.CONNECTED) {
             TopicPath path = topicsFacade.convertToTopicPath(publishMessage.getTopic());
-            Set<Subscriber> subscribers = topicTreeFacade.getSubscribers(path);
-            subscribers.stream()
+            Set<Client> clients = topicTreeFacade.getSubscribers(path);
+            clients.stream()
                     .forEach(subscriber -> {
                         Connection connection = connectionMapper.get(subscriber.getId());
                         connection.getOutgoingMessages().add(publishMessage);
@@ -157,7 +157,7 @@ public class MessageHandler implements Visitor {
 
         if(origin.getState() == ConnectionState.CONNECTED) {
             TopicPath path = topicsFacade.convertToTopicPath(unsubscribeMessage.getTopic());
-            Optional<Subscriber> subscriberOptional = subscribersFacade.get(origin.getSubscriberId());
+            Optional<Client> subscriberOptional = clientsFacade.get(origin.getClientId());
 
             if (subscriberOptional.isPresent()) {
                 result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());

@@ -1,6 +1,6 @@
 package mt.edu.um.topictree;
 
-import mt.edu.um.subscriber.Subscriber;
+import mt.edu.um.client.Client;
 import mt.edu.um.topic.TopicPath;
 
 import java.util.Set;
@@ -10,9 +10,9 @@ import java.util.Set;
  */
 public interface TopicTreeFacade {
 
-    boolean subscribe(TopicPath topicPath, Set<Subscriber> subscribers);
+    boolean subscribe(TopicPath topicPath, Set<Client> clients);
 
-    boolean unsubscribe(TopicPath topicPath, Subscriber subscriber);
+    boolean unsubscribe(TopicPath topicPath, Client client);
 
-    Set<Subscriber> getSubscribers(TopicPath topicPath);
+    Set<Client> getSubscribers(TopicPath topicPath);
 }

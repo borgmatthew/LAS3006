@@ -29,7 +29,7 @@ public class ClientMessageHandler implements Visitor {
                 + "\n");
         if (connAckMessage.getResult()) {
             connection.setState(ConnectionState.CONNECTED);
-            connection.setSubscriberId(connAckMessage.getId());
+            connection.setClientId(connAckMessage.getId());
         } else {
             connection.setState(ConnectionState.NOT_CONNECTED);
         }
@@ -64,7 +64,7 @@ public class ClientMessageHandler implements Visitor {
                 + "\nPAYLOAD: " + publishMessage.getPayload()
                 + "\n");
         PubRecMessage pubRecMessage = (PubRecMessage) MessageFactory.getMessageInstance(MessageType.PUBREC);
-        pubRecMessage.setClientId(connection.getSubscriberId())
+        pubRecMessage.setClientId(connection.getClientId())
                 .setMessageId(publishMessage.getMessageId())
                 .setTopic(publishMessage.getTopic())
                 .setResult(true);

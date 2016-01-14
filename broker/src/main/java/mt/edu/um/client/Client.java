@@ -1,4 +1,4 @@
-package mt.edu.um.subscriber;
+package mt.edu.um.client;
 
 import mt.edu.um.topic.TopicPath;
 
@@ -8,12 +8,12 @@ import java.util.Vector;
 /**
  * Created by matthew on 26/11/2015.
  */
-public class Subscriber {
+public class Client {
 
     private int id;
     private List<TopicPath> topics = new Vector<>();
 
-    public Subscriber(int id) {
+    public Client(int id) {
         this.id = id;
     }
 
@@ -30,7 +30,7 @@ public class Subscriber {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Subscriber that = (Subscriber) o;
+        Client that = (Client) o;
 
         return id == that.id;
 

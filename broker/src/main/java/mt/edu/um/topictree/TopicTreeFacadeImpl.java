@@ -1,6 +1,6 @@
 package mt.edu.um.topictree;
 
-import mt.edu.um.subscriber.Subscriber;
+import mt.edu.um.client.Client;
 import mt.edu.um.topic.TopicPath;
 
 import java.util.Set;
@@ -20,23 +20,23 @@ public class TopicTreeFacadeImpl implements TopicTreeFacade {
     }
 
     @Override
-    public boolean subscribe(TopicPath topicPath, Set<Subscriber> subscribers) {
+    public boolean subscribe(TopicPath topicPath, Set<Client> clients) {
         try {
             lock.readLock().lock();
-            return topicTree.insert(topicPath, subscribers);
+            return topicTree.insert(topicPath, clients);
         } finally {
             lock.readLock().unlock();
         }
     }
 
     @Override
-    public boolean unsubscribe(TopicPath topicPath, Subscriber subscriber) {
+    public boolean unsubscribe(TopicPath topicPath, Client client) {
         try {
             lock.writeLock().lock();
             if (topicTree.contains(topicPath)) {
-                Set<Subscriber> subscribers = topicTree.get(topicPath);
-                boolean result = subscribers.remove(subscriber);
-                if (subscribers.size() == 0) {
+                Set<Client> clients = topicTree.get(topicPath);
+                boolean result = clients.remove(client);
+                if (clients.size() == 0) {
                     topicTree.remove(topicPath);
                 }
                 return result;
@@ -49,7 +49,7 @@ public class TopicTreeFacadeImpl implements TopicTreeFacade {
     }
 
     @Override
-    public Set<Subscriber> getSubscribers(TopicPath topicPath) {
+    public Set<Client> getSubscribers(TopicPath topicPath) {
         try {
             lock.readLock().lock();
             return topicTree.getSubscribers(topicPath);

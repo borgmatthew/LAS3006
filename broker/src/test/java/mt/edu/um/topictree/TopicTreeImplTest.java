@@ -1,6 +1,6 @@
 package mt.edu.um.topictree;
 
-import mt.edu.um.subscriber.Subscriber;
+import mt.edu.um.client.Client;
 import mt.edu.um.topic.Topic;
 import mt.edu.um.topic.TopicPath;
 import org.junit.Before;
@@ -22,54 +22,54 @@ public class TopicTreeImplTest {
 
     private TopicTree topicTree;
     private TopicPath topicPath;
-    private Set<Subscriber> subscribers;
+    private Set<Client> clients;
 
     @Before
     public void setUp() throws Exception {
         topicTree = new TopicTreeImpl();
-        subscribers = new HashSet<>();
+        clients = new HashSet<>();
     }
 
     @Test
     public void testInsert_emptyTopicList() throws Exception {
         topicPath = new TopicPath(new ArrayList<>(0));
-        subscribers.add(new Subscriber(1));
+        clients.add(new Client(1));
 
-        assertFalse(topicTree.insert(topicPath, subscribers));
+        assertFalse(topicTree.insert(topicPath, clients));
     }
 
     @Test
     public void testInsert_emptySubscriberSet() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("topicOne")));
 
-        assertFalse(topicTree.insert(topicPath, subscribers));
+        assertFalse(topicTree.insert(topicPath, clients));
     }
 
     @Test
     public void testInsert_duplicateKey() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("topicOne")));
-        subscribers.add(new Subscriber(1));
+        clients.add(new Client(1));
 
         //First insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         //Second insert should fail
-        assertFalse(topicTree.insert(topicPath, subscribers));
+        assertFalse(topicTree.insert(topicPath, clients));
     }
 
     @Test
     public void testInsert_multipleLevels() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        subscribers.add(new Subscriber(1));
+        clients.add(new Client(1));
 
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
     }
 
     @Test
     public void testInsert_multipleLevels_siblings() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("siblingTopic")));
-        subscribers.add(new Subscriber(1));
+        clients.add(new Client(1));
 
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
     }
 
     @Test
@@ -82,37 +82,37 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_retrievesSubscribers() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
-        Set<Subscriber> subscribersTwo = new HashSet<>();
+        Set<Client> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("siblingTopic")));
-        Subscriber subscriberTwo = new Subscriber(1);
-        subscribersTwo.add(subscriberTwo);
+        Client clientTwo = new Client(1);
+        subscribersTwo.add(clientTwo);
 
         //Inserts should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
 
-        assertEquals(subscribers, topicTree.getSubscribers(topicPath));
+        assertEquals(clients, topicTree.getSubscribers(topicPath));
     }
 
     @Test
     public void testGetSubscribers_retrievesSubscribersWithHashWildCard() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
-        Set<Subscriber> subscribersTwo = new HashSet<>();
+        Set<Client> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("#")));
-        Subscriber subscriberTwo = new Subscriber(1);
-        subscribersTwo.add(subscriberTwo);
+        Client clientTwo = new Client(1);
+        subscribersTwo.add(clientTwo);
 
-        Set<Subscriber> result = new HashSet<>(subscribers);
+        Set<Client> result = new HashSet<>(clients);
         result.addAll(subscribersTwo);
 
         //Inserts should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
 
         assertEquals(result, topicTree.getSubscribers(topicPath));
@@ -121,19 +121,19 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_retrievesSubscribersWithHashWildCard_multipleLevels() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
-        Set<Subscriber> subscribersTwo = new HashSet<>();
+        Set<Client> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("#")));
-        Subscriber subscriberTwo = new Subscriber(1);
-        subscribersTwo.add(subscriberTwo);
+        Client clientTwo = new Client(1);
+        subscribersTwo.add(clientTwo);
 
-        Set<Subscriber> result = new HashSet<>(subscribers);
+        Set<Client> result = new HashSet<>(clients);
         result.addAll(subscribersTwo);
 
         //Inserts should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
 
         assertEquals(result, topicTree.getSubscribers(topicPath));
@@ -142,19 +142,19 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_retrievesSubscribersWithPlusWildCard() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
-        Set<Subscriber> subscribersTwo = new HashSet<>();
+        Set<Client> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("+"), new Topic("grandChild")));
-        Subscriber subscriberTwo = new Subscriber(1);
-        subscribersTwo.add(subscriberTwo);
+        Client clientTwo = new Client(1);
+        subscribersTwo.add(clientTwo);
 
-        Set<Subscriber> result = new HashSet<>(subscribers);
+        Set<Client> result = new HashSet<>(clients);
         result.addAll(subscribersTwo);
 
         //Inserts should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
         assertEquals(result, topicTree.getSubscribers(topicPath));
     }
@@ -162,36 +162,36 @@ public class TopicTreeImplTest {
     @Test
     public void testGetSubscribers_plusWildCard_noMatch() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
-        Set<Subscriber> subscribersTwo = new HashSet<>();
+        Set<Client> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("+"), new Topic("childTopic")));
-        Subscriber subscriberTwo = new Subscriber(1);
-        subscribersTwo.add(subscriberTwo);
+        Client clientTwo = new Client(1);
+        subscribersTwo.add(clientTwo);
 
         //Inserts should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
 
-        assertEquals(subscribers, topicTree.getSubscribers(topicPath));
+        assertEquals(clients, topicTree.getSubscribers(topicPath));
     }
 
     @Test
     public void testTraverse_visitsEveryNode() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
-        Set<Subscriber> subscribersTwo = new HashSet<>();
+        Set<Client> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("+"), new Topic("childTopic")));
-        Subscriber subscriberTwo = new Subscriber(1);
-        subscribersTwo.add(subscriberTwo);
+        Client clientTwo = new Client(1);
+        subscribersTwo.add(clientTwo);
 
         Consumer consumer = Mockito.mock(Consumer.class);
 
         //Inserts should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
 
         topicTree.traverse(consumer);
@@ -203,33 +203,33 @@ public class TopicTreeImplTest {
     @Test
     public void testRemove_oneNodeIsRemoved_parentContainsMoreChildren() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
-        Set<Subscriber> subscribersTwo = new HashSet<>();
+        Set<Client> subscribersTwo = new HashSet<>();
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("funTopic")));
-        Subscriber subscriberTwo = new Subscriber(1);
-        subscribersTwo.add(subscriberTwo);
+        Client clientTwo = new Client(1);
+        subscribersTwo.add(clientTwo);
 
         //Inserts should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
         assertTrue(topicTree.insert(topicPathTwo, subscribersTwo));
 
         //Remove is successful
         assertTrue(topicTree.remove(topicPath));
 
-        //Check that the subscribers for the topic "parentTopic/childTopic/funTopic" is still in the tree
+        //Check that the clients for the topic "parentTopic/childTopic/funTopic" is still in the tree
         assertEquals(subscribersTwo, topicTree.getSubscribers(topicPathTwo));
     }
 
     @Test
     public void testRemove_emptyNodesAreRemoved() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
         //Insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
 
         //Remove is successful
         assertTrue(topicTree.remove(topicPath));
@@ -241,16 +241,16 @@ public class TopicTreeImplTest {
     @Test
     public void testRemove_nodeWithNoChildren_containsSubscribers_notRemoved() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        this.clients.add(client);
 
         //Insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, this.clients));
 
-        //Add subscribers to /parentTopic/childTopic
+        //Add clients to /parentTopic/childTopic
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic")));
-        Set<Subscriber> subscribers = topicTree.get(topicPathTwo);
-        subscribers.add(new Subscriber(1));
+        Set<Client> clients = topicTree.get(topicPathTwo);
+        clients.add(new Client(1));
 
         //Remove is successful
         assertTrue(topicTree.remove(topicPath));
@@ -261,14 +261,14 @@ public class TopicTreeImplTest {
     @Test
     public void testSize_multipleNodes() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
         TopicPath topicPathTwo = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("funTopic")));
 
         //Insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
-        assertTrue(topicTree.insert(topicPathTwo, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
+        assertTrue(topicTree.insert(topicPathTwo, clients));
 
         assertEquals(4, topicTree.size());
     }
@@ -281,13 +281,13 @@ public class TopicTreeImplTest {
     @Test
     public void testGet_retrievesSameObject() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
         //Insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
 
-        assertEquals(subscribers, topicTree.get(topicPath));
+        assertEquals(clients, topicTree.get(topicPath));
     }
 
     @Test
@@ -298,11 +298,11 @@ public class TopicTreeImplTest {
     @Test
     public void testGet_keyNotFound_emptySetIsReturned() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
         //Insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
 
         assertEquals(0, topicTree.get(new TopicPath(Arrays.asList(new Topic("testTopic")))).size());
     }
@@ -310,11 +310,11 @@ public class TopicTreeImplTest {
     @Test
     public void testContains_returnsTrueWhenObjectFound() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
         //Insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
 
         assertTrue(topicTree.contains(topicPath));
     }
@@ -327,11 +327,11 @@ public class TopicTreeImplTest {
     @Test
     public void testContains_keyNotFound_falseIsReturned() throws Exception {
         topicPath = new TopicPath(Arrays.asList(new Topic("parentTopic"), new Topic("childTopic"), new Topic("grandChild")));
-        Subscriber subscriber = new Subscriber(1);
-        subscribers.add(subscriber);
+        Client client = new Client(1);
+        clients.add(client);
 
         //Insert should succeed
-        assertTrue(topicTree.insert(topicPath, subscribers));
+        assertTrue(topicTree.insert(topicPath, clients));
 
         assertFalse(topicTree.contains(new TopicPath(Arrays.asList(new Topic("TestTopic")))));
     }

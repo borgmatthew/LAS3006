@@ -24,7 +24,7 @@ public class SubscriberMessageGenerator implements MessageGenerator {
         if (connection.getState().equals(ConnectionState.NOT_CONNECTED)) {
             ConnectMessage connectMessage = generateConnectMessage();
             connection.setState(ConnectionState.PENDING_CONNECTION);
-            connection.setSubscriberId(connectMessage.getId());
+            connection.setClientId(connectMessage.getId());
             return Optional.of(connectMessage);
         } else if (connection.getState().equals(ConnectionState.PENDING_CONNECTION)) {
             //Connect message is still being processed

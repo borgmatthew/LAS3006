@@ -16,4 +16,13 @@ public class TopicPath {
     public List<Topic> getTopics() {
         return topics;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (Topic topic : topics) {
+            builder.append(topic.toString());
+        }
+        return builder.toString();
+    }
 }

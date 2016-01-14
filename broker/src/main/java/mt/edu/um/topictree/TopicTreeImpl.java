@@ -1,7 +1,7 @@
 package mt.edu.um.topictree;
 
 import mt.edu.um.graph.Node;
-import mt.edu.um.subscriber.Subscriber;
+import mt.edu.um.client.Client;
 import mt.edu.um.topic.Topic;
 import mt.edu.um.topic.TopicPath;
 
@@ -14,10 +14,10 @@ import java.util.function.Function;
  */
 public class TopicTreeImpl implements TopicTree {
 
-    private Node<Topic, Set<Subscriber>> root = new Node<>(new Topic(""), new HashSet<>(0));
+    private Node<Topic, Set<Client>> root = new Node<>(new Topic(""), new HashSet<>(0));
 
     @Override
-    public boolean insert(TopicPath key, Set<Subscriber> value) {
+    public boolean insert(TopicPath key, Set<Client> value) {
         if (key.getTopics().size() > 0 && value.size() > 0) {
             return recursiveInsert(key, value, 0, root);
         } else {
@@ -44,7 +44,7 @@ public class TopicTreeImpl implements TopicTree {
     }
 
     @Override
-    public Set<Subscriber> get(TopicPath key) {
+    public Set<Client> get(TopicPath key) {
         if (key.getTopics().size() > 0) {
             return recursiveGet(key, 0, root);
         } else {
@@ -53,7 +53,7 @@ public class TopicTreeImpl implements TopicTree {
     }
 
     @Override
-    public Set<Subscriber> getSubscribers(TopicPath key) {
+    public Set<Client> getSubscribers(TopicPath key) {
         if (key.getTopics().size() > 0) {
             return recursiveGetSubscribers(key, 0, new HashSet<>(Arrays.asList(root)));
         } else {
@@ -62,13 +62,13 @@ public class TopicTreeImpl implements TopicTree {
     }
 
     @Override
-    public void traverse(Consumer<Set<Subscriber>> consumer) {
-        Stack<Node<Topic, Set<Subscriber>>> stack = new Stack<>();
+    public void traverse(Consumer<Set<Client>> consumer) {
+        Stack<Node<Topic, Set<Client>>> stack = new Stack<>();
         stack.push(root);
         while (!stack.empty()) {
-            Node<Topic, Set<Subscriber>> root = stack.pop();
-            Map<Topic, Node<Topic, Set<Subscriber>>> children = root.getChildren();
-            for (Node<Topic, Set<Subscriber>> node : children.values()) {
+            Node<Topic, Set<Client>> root = stack.pop();
+            Map<Topic, Node<Topic, Set<Client>>> children = root.getChildren();
+            for (Node<Topic, Set<Client>> node : children.values()) {
                 consumer.accept(node.getValue());
                 //TODO: remove code to print tree
                 System.out.println(root.getKey().getName() + " -> " + node.getKey().getName() + ";");
@@ -78,14 +78,14 @@ public class TopicTreeImpl implements TopicTree {
     }
 
     @Override
-    public List<Object> traverse(Function<Set<Subscriber>, Object> function) {
+    public List<Object> traverse(Function<Set<Client>, Object> function) {
         List<Object> result = new ArrayList<>();
-        Stack<Node<Topic, Set<Subscriber>>> stack = new Stack<>();
+        Stack<Node<Topic, Set<Client>>> stack = new Stack<>();
         stack.push(root);
         while (!stack.empty()) {
-            Node<Topic, Set<Subscriber>> root = stack.pop();
-            Map<Topic, Node<Topic, Set<Subscriber>>> children = root.getChildren();
-            for (Node<Topic, Set<Subscriber>> node : children.values()) {
+            Node<Topic, Set<Client>> root = stack.pop();
+            Map<Topic, Node<Topic, Set<Client>>> children = root.getChildren();
+            for (Node<Topic, Set<Client>> node : children.values()) {
                 result.add(function.apply(node.getValue()));
                 stack.push(node);
             }
@@ -99,7 +99,7 @@ public class TopicTreeImpl implements TopicTree {
         return sizes.size();
     }
 
-    private boolean recursiveInsert(TopicPath key, Set<Subscriber> value, int depth, Node<Topic, Set<Subscriber>> node) {
+    private boolean recursiveInsert(TopicPath key, Set<Client> value, int depth, Node<Topic, Set<Client>> node) {
         if (depth == key.getTopics().size() - 1) {
             Topic topic = key.getTopics().get(depth);
             if (!node.getChildren().keySet().contains(topic)) {
@@ -109,7 +109,7 @@ public class TopicTreeImpl implements TopicTree {
             return false;
         } else {
             Topic topic = key.getTopics().get(depth);
-            Node<Topic, Set<Subscriber>> nextNode;
+            Node<Topic, Set<Client>> nextNode;
             if (!node.getChildren().keySet().contains(topic)) {
                 nextNode = new Node<>(topic, new HashSet<>());
                 node.getChildren().put(topic, nextNode);
@@ -120,7 +120,7 @@ public class TopicTreeImpl implements TopicTree {
         }
     }
 
-    private Set<Subscriber> recursiveGet(TopicPath key, int depth, Node<Topic, Set<Subscriber>> parent) {
+    private Set<Client> recursiveGet(TopicPath key, int depth, Node<Topic, Set<Client>> parent) {
         if (depth == key.getTopics().size()-1) {
             Topic topic = key.getTopics().get(depth);
             if(parent.getChildren().containsKey(topic)) {
@@ -138,7 +138,7 @@ public class TopicTreeImpl implements TopicTree {
         }
     }
 
-    private boolean recursiveContains(TopicPath key, int depth, Node<Topic, Set<Subscriber>> parent) {
+    private boolean recursiveContains(TopicPath key, int depth, Node<Topic, Set<Client>> parent) {
         if (depth == key.getTopics().size()-1) {
             if(parent.getChildren().containsKey(key.getTopics().get(depth))) {
                 return true;
@@ -155,31 +155,31 @@ public class TopicTreeImpl implements TopicTree {
         }
     }
 
-    private Set<Subscriber> recursiveGetSubscribers(TopicPath key, int depth, Set<Node<Topic, Set<Subscriber>>> matchingNodes) {
+    private Set<Client> recursiveGetSubscribers(TopicPath key, int depth, Set<Node<Topic, Set<Client>>> matchingNodes) {
         if (matchingNodes.size() == 0) {
             return Collections.emptySet();
         } else if (depth == key.getTopics().size()) {
-            Set<Subscriber> subscribers = new HashSet<>();
-            for (Node<Topic, Set<Subscriber>> node : matchingNodes) {
-                subscribers.addAll(node.getValue());
+            Set<Client> clients = new HashSet<>();
+            for (Node<Topic, Set<Client>> node : matchingNodes) {
+                clients.addAll(node.getValue());
             }
-            return subscribers;
+            return clients;
         } else {
-            Set<Node<Topic, Set<Subscriber>>> result = new HashSet<>();
-            Set<Subscriber> subscribers = new HashSet<>();
-            for (Node<Topic, Set<Subscriber>> node : matchingNodes) {
+            Set<Node<Topic, Set<Client>>> result = new HashSet<>();
+            Set<Client> clients = new HashSet<>();
+            for (Node<Topic, Set<Client>> node : matchingNodes) {
                 if (node.getChildren().containsKey(new Topic("#"))) {
-                    subscribers.addAll(node.getChildren().get(new Topic("#")).getValue());
+                    clients.addAll(node.getChildren().get(new Topic("#")).getValue());
                 }
                 result.addAll(matches(node, key.getTopics().get(depth)));
             }
-            subscribers.addAll(recursiveGetSubscribers(key, depth + 1, result));
-            return subscribers;
+            clients.addAll(recursiveGetSubscribers(key, depth + 1, result));
+            return clients;
         }
     }
 
-    private Set<Node<Topic, Set<Subscriber>>> matches(Node<Topic, Set<Subscriber>> node, Topic topic) {
-        Set<Node<Topic, Set<Subscriber>>> matchedNodes = new HashSet<>();
+    private Set<Node<Topic, Set<Client>>> matches(Node<Topic, Set<Client>> node, Topic topic) {
+        Set<Node<Topic, Set<Client>>> matchedNodes = new HashSet<>();
         if (node.getChildren().containsKey(topic)) {
             matchedNodes.add(node.getChildren().get(topic));
         }
@@ -191,10 +191,10 @@ public class TopicTreeImpl implements TopicTree {
         return matchedNodes;
     }
 
-    private boolean recursiveRemove(TopicPath key, int depth, Node<Topic, Set<Subscriber>> node) {
+    private boolean recursiveRemove(TopicPath key, int depth, Node<Topic, Set<Client>> node) {
         if (depth == key.getTopics().size() - 1) {
             if (node.getChildren().containsKey(key.getTopics().get(depth))) {
-                Map<Topic, Node<Topic, Set<Subscriber>>> grandChildren = node.getChildren().get(key.getTopics().get(depth)).getChildren();
+                Map<Topic, Node<Topic, Set<Client>>> grandChildren = node.getChildren().get(key.getTopics().get(depth)).getChildren();
                 if (grandChildren.isEmpty()) {
                     node.getChildren().remove(key.getTopics().get(depth));
                 }
@@ -205,7 +205,7 @@ public class TopicTreeImpl implements TopicTree {
         } else {
             if (node.getChildren().containsKey(key.getTopics().get(depth))) {
                 boolean result = recursiveRemove(key, depth + 1, node.getChildren().get(key.getTopics().get(depth)));
-                Node<Topic, Set<Subscriber>> childNode = node.getChildren().get(key.getTopics().get(depth));
+                Node<Topic, Set<Client>> childNode = node.getChildren().get(key.getTopics().get(depth));
                 if (childNode.getChildren().isEmpty() && childNode.getValue().isEmpty()) {
                     node.getChildren().remove(key.getTopics().get(depth));
                 }

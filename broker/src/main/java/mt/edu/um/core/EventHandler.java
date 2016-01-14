@@ -2,9 +2,9 @@ package mt.edu.um.core;
 
 import mt.edu.um.protocol.connection.Connection;
 import mt.edu.um.protocol.message.Message;
-import mt.edu.um.subscriber.Subscriber;
-import mt.edu.um.subscriber.SubscribersFacade;
-import mt.edu.um.subscriber.SubscribersFacadeImpl;
+import mt.edu.um.client.Client;
+import mt.edu.um.client.ClientsFacade;
+import mt.edu.um.client.ClientsFacadeImpl;
 import mt.edu.um.topic.TopicsFacade;
 import mt.edu.um.topic.TopicsFacadeImpl;
 import mt.edu.um.topictree.TopicTreeFacade;
@@ -26,7 +26,7 @@ public class EventHandler {
 
     private final ExecutorService executorService;
     private final TopicTreeFacade topicTreeFacade = new TopicTreeFacadeImpl(new TopicTreeImpl());
-    private final SubscribersFacade subscribersFacade = new SubscribersFacadeImpl();
+    private final ClientsFacade clientsFacade = new ClientsFacadeImpl();
     private final TopicsFacade topicsFacade = new TopicsFacadeImpl();
     private final ConnectionManager connectionManager;
     private final ConcurrentHashMap<Integer, Connection> connectionMapper = new ConcurrentHashMap<>();
@@ -38,10 +38,9 @@ public class EventHandler {
 
     public void handleMessages(Connection origin) {
         List<Message> messages = origin.getIncomingMessages().emptyBuffer();
-        connectionManager.update(origin);
         messages.stream()
                 .forEach(message -> CompletableFuture.runAsync(() -> {
-                    message.accept(new MessageHandler(topicTreeFacade, subscribersFacade, topicsFacade, connectionMapper, origin));
+                    message.accept(new MessageHandler(topicTreeFacade, clientsFacade, topicsFacade, connectionMapper, origin));
                 }, executorService));
     }
 
@@ -58,13 +57,13 @@ public class EventHandler {
      */
     public void closeConnection(Connection connection) {
         CompletableFuture.runAsync(() -> {
-            System.out.println("Disconnecting client " + connection.getSubscriberId() + "\n");
+            System.out.println("Disconnecting client " + connection.getClientId() + "\n");
 
-            Optional<Subscriber> subscriberOptional = subscribersFacade.get(connection.getSubscriberId());
+            Optional<Client> subscriberOptional = clientsFacade.get(connection.getClientId());
             if (subscriberOptional.isPresent()) {
                 subscriberOptional.get().getTopics().stream().forEach(topic -> topicTreeFacade.unsubscribe(topic, subscriberOptional.get()));
-                subscribersFacade.remove(subscriberOptional.get().getId());
-                connectionMapper.remove(connection.getSubscriberId());
+                clientsFacade.remove(subscriberOptional.get().getId());
+                connectionMapper.remove(connection.getClientId());
             }
 
             connection.getOutgoingMessages().emptyBuffer();

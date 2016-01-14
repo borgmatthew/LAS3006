@@ -1,11 +1,11 @@
-package mt.edu.um.subscriber;
+package mt.edu.um.client;
 
 import java.util.Optional;
 
 /**
  * Created by matthew on 13/12/2015.
  */
-public interface SubscribersFacade {
+public interface ClientsFacade {
 
     /**
      * Adds a subscriber
@@ -26,6 +26,6 @@ public interface SubscribersFacade {
      * @param id the id used to create
      * @return a subscriber if found
      */
-    Optional<Subscriber> get(int id);
+    Optional<Client> get(int id);
 
 }

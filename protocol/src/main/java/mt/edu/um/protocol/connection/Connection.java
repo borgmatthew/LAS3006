@@ -12,13 +12,13 @@ public class Connection {
     private ConnectionState state;
     private final MessageBuffer outgoingMessages;
     private final MessageBuffer incomingMessages;
-    private int subscriberId;
+    private int clientId;
     private Instant lastActive;
 
     public Connection(SelectionKey selectionKey) {
         this.selectionKey = selectionKey;
         this.state = ConnectionState.NOT_CONNECTED;
-        this.subscriberId = -1;
+        this.clientId = -1;
         this.outgoingMessages = new MessageBuffer();
         this.incomingMessages = new MessageBuffer();
         this.lastActive = Instant.now();
@@ -36,12 +36,12 @@ public class Connection {
         return state;
     }
 
-    public int getSubscriberId() {
-        return subscriberId;
+    public int getClientId() {
+        return clientId;
     }
 
-    public Connection setSubscriberId(int subscriberId) {
-        this.subscriberId = subscriberId;
+    public Connection setClientId(int clientId) {
+        this.clientId = clientId;
         return this;
     }
 

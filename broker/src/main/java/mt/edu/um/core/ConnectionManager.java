@@ -37,4 +37,8 @@ public class ConnectionManager {
     public Collection<Connection> getTimedOutConnections(long timeout) {
         return connectionList.tailMap(timeout).values();
     }
+
+    public int getTotalConnections() {
+        return connectionList.size();
+    }
 }

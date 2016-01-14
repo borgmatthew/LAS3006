@@ -1,11 +1,14 @@
 package mt.edu.um.core;
 
+import mt.edu.um.monitor.ConnectionMonitorImpl;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
 import mt.edu.um.protocol.connection.Connection;
 import mt.edu.um.protocol.message.Message;
 
+import javax.management.*;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -34,6 +37,14 @@ public class Server {
         this.connectionManager = new ConnectionManager();
         this.eventHandler = new EventHandler(connectionManager);
         this.nextConnectionExpiry = maxInactiveMinutes * 60 * 1000;
+
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ConnectionMonitorImpl connectionMonitor = new ConnectionMonitorImpl(connectionManager);
+        try {
+            mBeanServer.registerMBean(connectionMonitor, connectionMonitor.getObjectName());
+        } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {
+            e.printStackTrace();
+        }
     }
 
     public void start() {
@@ -65,7 +76,7 @@ public class Server {
                         if (key.isValid() && key.isReadable()) {
                             try {
                                 Connection connection = (Connection) key.attachment();
-                                connection.setLastActive(Instant.now());
+                                connectionManager.update(connection);
                                 connection.getIncomingMessages().addAll(brokerProtocol.receive((SocketChannel) key.channel()));
                                 eventHandler.handleMessages(connection);
                             } catch (IOException e) {
@@ -97,7 +108,7 @@ public class Server {
                         .stream()
                         .forEach(eventHandler::closeConnection);
 
-                nextConnectionExpiry = (connectionManager.getLastEntry().orElse(nowInMillis) + maxInactiveMinutes * 60) - nowInMillis;
+                nextConnectionExpiry = Math.abs((connectionManager.getLastEntry().orElse(nowInMillis) + maxInactiveMinutes * 60) - nowInMillis);
             }
         } catch (IOException e) {
             e.printStackTrace();

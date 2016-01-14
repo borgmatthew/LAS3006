@@ -1,6 +1,6 @@
 package mt.edu.um.client;
 
-import mt.edu.um.monitor.SubscriberMonitorImpl;
+import mt.edu.um.monitor.ClientMonitorImpl;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;
@@ -33,7 +33,7 @@ public class ClientsFacadeImpl implements ClientsFacade {
             clients.put(id, client);
 
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            SubscriberMonitorImpl subscriberMonitor = new SubscriberMonitorImpl(client);
+            ClientMonitorImpl subscriberMonitor = new ClientMonitorImpl(client);
             try {
                 mBeanServer.registerMBean(subscriberMonitor, subscriberMonitor.getObjectName());
             } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {

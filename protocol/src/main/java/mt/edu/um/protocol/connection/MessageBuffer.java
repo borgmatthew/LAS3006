@@ -11,20 +11,23 @@ import java.util.List;
 public class MessageBuffer {
 
     private ArrayList<Message> messages;
-
+    private int totalMessagesBuffered;
     public MessageBuffer() {
         messages = new ArrayList<>();
+        totalMessagesBuffered = 0;
     }
 
     public void add(Message message) {
         synchronized (this) {
-            messages.add(message);
+            this.messages.add(message);
+            this.totalMessagesBuffered += 1;
         }
     }
 
     public void addAll(List<Message> messages) {
         synchronized (this) {
             this.messages.addAll(messages);
+            this.totalMessagesBuffered += messages.size();
         }
     }
 
@@ -41,5 +44,9 @@ public class MessageBuffer {
         synchronized (this) {
             return this.messages.remove(0);
         }
+    }
+
+    public int getTotalMessagesBuffered() {
+        return totalMessagesBuffered;
     }
 }

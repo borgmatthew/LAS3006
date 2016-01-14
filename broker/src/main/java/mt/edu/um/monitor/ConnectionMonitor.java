@@ -1,6 +1,7 @@
 package mt.edu.um.monitor;
 
 import javax.management.MXBean;
+import java.time.Instant;
 
 /**
  * Created by matthew on 14/01/2016.
@@ -8,6 +9,12 @@ import javax.management.MXBean;
 @MXBean
 public interface ConnectionMonitor {
 
-    int getTotalConnections();
+    int getClientId();
+
+    int getReceivedMessages();
+
+    int getSentMessages();
+
+    Instant getLastActiveTime();
 
 }

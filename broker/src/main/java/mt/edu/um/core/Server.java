@@ -1,6 +1,7 @@
 package mt.edu.um.core;
 
 import mt.edu.um.monitor.ConnectionMonitorImpl;
+import mt.edu.um.monitor.ConnectionsMonitorImpl;
 import mt.edu.um.protocol.communication.BrokerProtocol;
 import mt.edu.um.protocol.communication.BrokerProtocolImpl;
 import mt.edu.um.protocol.connection.Connection;
@@ -39,7 +40,7 @@ public class Server {
         this.nextConnectionExpiry = maxInactiveMinutes * 60 * 1000;
 
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        ConnectionMonitorImpl connectionMonitor = new ConnectionMonitorImpl(connectionManager);
+        ConnectionsMonitorImpl connectionMonitor = new ConnectionsMonitorImpl(connectionManager);
         try {
             mBeanServer.registerMBean(connectionMonitor, connectionMonitor.getObjectName());
         } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {
@@ -71,6 +72,7 @@ public class Server {
                             Connection connection = new Connection(clientKey);
                             connectionManager.addConnection(connection);
                             clientKey.attach(connection);
+                            createConnectionMBean(connection);
                         }
 
                         if (key.isValid() && key.isReadable()) {
@@ -111,6 +113,16 @@ public class Server {
                 nextConnectionExpiry = Math.abs((connectionManager.getLastEntry().orElse(nowInMillis) + maxInactiveMinutes * 60) - nowInMillis);
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createConnectionMBean(Connection connection) {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ConnectionMonitorImpl connectionMonitor = new ConnectionMonitorImpl(connection);
+        try {
+            mBeanServer.registerMBean(connectionMonitor, connectionMonitor.getObjectName());
+        } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {
             e.printStackTrace();
         }
     }

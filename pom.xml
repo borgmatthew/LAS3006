@@ -12,7 +12,7 @@
         <module>broker</module>
         <module>client</module>
         <module>client-publisher</module>
-        <module>client-client</module>
+        <module>client-subscriber</module>
         <module>protocol</module>
     </modules>
 

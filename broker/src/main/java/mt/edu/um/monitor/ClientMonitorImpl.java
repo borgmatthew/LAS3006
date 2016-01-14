@@ -25,6 +25,16 @@ public class ClientMonitorImpl implements ClientMonitor {
     }
 
     @Override
+    public int getPublishedMessagesCount() {
+        return client.getPublishedMessages();
+    }
+
+    @Override
+    public int getReceivedMessagesCount() {
+        return client.getReceivedMessages();
+    }
+
+    @Override
     public List<String> getSubscribedTopics() {
         return client.getTopics().stream().map(TopicPath::toString).collect(Collectors.toList());
     }

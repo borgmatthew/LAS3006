@@ -116,6 +116,7 @@ public class MessageHandler implements Visitor {
         boolean result = false;
 
         if (origin.getState() == ConnectionState.CONNECTED) {
+            clientsFacade.get(origin.getClientId()).ifPresent(client -> client.getPublishedMessages().getAndIncrement());
             TopicPath path = topicsFacade.convertToTopicPath(publishMessage.getTopic());
             Set<Client> clients = topicTreeFacade.getSubscribers(path);
             clients.stream()
@@ -123,6 +124,7 @@ public class MessageHandler implements Visitor {
                         Connection connection = connectionMapper.get(subscriber.getId());
                         connection.getOutgoingMessages().add(publishMessage);
                         connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
+                        subscriber.getReceivedMessages().getAndIncrement();
                     });
             result = true;
         }

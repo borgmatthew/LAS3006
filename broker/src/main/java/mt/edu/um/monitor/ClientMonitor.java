@@ -11,6 +11,10 @@ public interface ClientMonitor {
 
     int getId();
 
+    int getPublishedMessagesCount();
+
+    int getReceivedMessagesCount();
+
     List<String> getSubscribedTopics();
 
 }

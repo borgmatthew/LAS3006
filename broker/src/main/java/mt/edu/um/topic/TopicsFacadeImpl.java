@@ -21,6 +21,9 @@ public class TopicsFacadeImpl implements TopicsFacade {
 
     @Override
     public TopicPath convertToTopicPath(String path) {
+        if(path.startsWith("/")) {
+            path = path.substring(1);
+        }
         String[] splitted = path.split("/");
         List<Topic> topics = Arrays.stream(splitted)
                 .map(Topic::new)
@@ -64,10 +67,10 @@ public class TopicsFacadeImpl implements TopicsFacade {
     }
 
     @Override
-    public List<TopicPath> getAllTopics() {
+    public List<TopicInfo> getAllTopics() {
         try {
             lock.readLock().lock();
-            return new ArrayList<>(informationOnTopics.keySet());
+            return new ArrayList<>(informationOnTopics.values());
         } finally {
             lock.readLock().unlock();
         }

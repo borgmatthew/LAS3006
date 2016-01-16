@@ -13,4 +13,6 @@ public interface TopicsMonitor {
 
     List<String> getAllTopics();
 
+    int getTotalPublishMessages();
+
 }

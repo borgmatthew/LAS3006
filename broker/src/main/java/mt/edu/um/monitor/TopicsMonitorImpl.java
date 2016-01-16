@@ -1,6 +1,6 @@
 package mt.edu.um.monitor;
 
-import mt.edu.um.topic.TopicPath;
+import mt.edu.um.topic.TopicInfo;
 import mt.edu.um.topic.TopicsFacade;
 
 import javax.management.MalformedObjectNameException;
@@ -26,7 +26,12 @@ public class TopicsMonitorImpl implements TopicsMonitor {
 
     @Override
     public List<String> getAllTopics() {
-        return topicsFacade.getAllTopics().stream().map(TopicPath::toString).collect(Collectors.toList());
+        return topicsFacade.getAllTopics().stream().map(topicInfo -> topicInfo.getTopicPath().toString()).collect(Collectors.toList());
+    }
+
+    @Override
+    public int getTotalPublishMessages() {
+        return topicsFacade.getAllTopics().stream().mapToInt(TopicInfo::getPublishedMessages).sum();
     }
 
     public ObjectName getObjectName() throws MalformedObjectNameException {

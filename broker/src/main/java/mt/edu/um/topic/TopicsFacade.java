@@ -13,7 +13,7 @@ public interface TopicsFacade {
 
     void unregister(TopicPath topicPath);
 
-    List<TopicPath> getAllTopics();
+    List<TopicInfo> getAllTopics();
 
     TopicInfo getTopicInfo(TopicPath topicPath);
 

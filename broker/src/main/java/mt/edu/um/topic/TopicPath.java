@@ -7,7 +7,7 @@ import java.util.List;
  */
 public class TopicPath {
 
-    private List<Topic> topics;
+    private final List<Topic> topics;
 
     public TopicPath(List<Topic> topics) {
         this.topics = topics;
@@ -21,8 +21,24 @@ public class TopicPath {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         for (Topic topic : topics) {
-            builder.append(topic.toString());
+            builder.append("/").append(topic.toString());
         }
         return builder.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TopicPath topicPath = (TopicPath) o;
+
+        return this.toString().equals(topicPath.toString());
+
+    }
+
+    @Override
+    public int hashCode() {
+        return topics != null ? topics.hashCode() : 0;
     }
 }

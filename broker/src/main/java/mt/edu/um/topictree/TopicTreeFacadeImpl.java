@@ -3,7 +3,6 @@ package mt.edu.um.topictree;
 import mt.edu.um.client.Client;
 import mt.edu.um.topic.TopicPath;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -57,10 +56,5 @@ public class TopicTreeFacadeImpl implements TopicTreeFacade {
         } finally {
             lock.readLock().unlock();
         }
-    }
-
-    @Override
-    public List<TopicPath> getAllTopics() {
-        return null;
     }
 }

@@ -16,6 +16,4 @@ public interface TopicTree extends Tree<TopicPath, Set<Client>> {
     <K> List<K> traverse(Function<Set<Client>, K> function);
 
     Set<Client> getSubscribers(TopicPath key);
-
-    List<TopicPath> getAllTopics();
 }

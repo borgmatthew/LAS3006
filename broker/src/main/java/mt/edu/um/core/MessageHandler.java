@@ -1,10 +1,11 @@
 package mt.edu.um.core;
 
+import mt.edu.um.client.Client;
+import mt.edu.um.client.ClientsFacade;
 import mt.edu.um.protocol.connection.Connection;
 import mt.edu.um.protocol.connection.ConnectionState;
 import mt.edu.um.protocol.message.*;
-import mt.edu.um.client.Client;
-import mt.edu.um.client.ClientsFacade;
+import mt.edu.um.topic.TopicInfo;
 import mt.edu.um.topic.TopicPath;
 import mt.edu.um.topic.TopicsFacade;
 import mt.edu.um.topictree.TopicTreeFacade;
@@ -79,6 +80,7 @@ public class MessageHandler implements Visitor {
                 result = topicTreeFacade.subscribe(path, new HashSet<>(Arrays.asList(subscriberOptional.get())));
                 if (result) {
                     subscriberOptional.get().getTopics().add(path);
+                    topicsFacade.register(path);
                 }
             }
         }
@@ -126,6 +128,13 @@ public class MessageHandler implements Visitor {
                         connection.getSelectionKey().interestOps(connection.getSelectionKey().interestOps() | SelectionKey.OP_WRITE);
                         subscriber.getReceivedMessages().getAndIncrement();
                     });
+            if(!clients.isEmpty()) {
+                TopicInfo topicInfo = topicsFacade.getTopicInfo(path);
+                //Make sure that only one thread modifies the number of published messages for this topic
+                synchronized (topicInfo) {
+                    topicInfo.setPublishedMessages(topicInfo.getPublishedMessages() + 1);
+                }
+            }
             result = true;
         }
 
@@ -164,6 +173,7 @@ public class MessageHandler implements Visitor {
             if (subscriberOptional.isPresent()) {
                 result = topicTreeFacade.unsubscribe(path, subscriberOptional.get());
                 subscriberOptional.get().getTopics().remove(path);
+                topicsFacade.unregister(path);
             }
         }
 

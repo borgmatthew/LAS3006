@@ -14,10 +14,10 @@ public class Connection {
     private final MessageBuffer incomingMessages;
     private int clientId;
     private Instant lastActive;
-    private final long objectCreationTime;
+    private final Instant objectCreationTime;
 
     public Connection(SelectionKey selectionKey) {
-        this.objectCreationTime = Instant.now().toEpochMilli();
+        this.objectCreationTime = Instant.now();
         this.selectionKey = selectionKey;
         this.state = ConnectionState.NOT_CONNECTED;
         this.clientId = -1;
@@ -64,7 +64,7 @@ public class Connection {
         return this;
     }
 
-    public long getObjectCreationTime() {
+    public Instant getObjectCreationTime() {
         return objectCreationTime;
     }
 }

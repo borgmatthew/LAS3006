@@ -38,17 +38,10 @@ public class Server {
         this.connectionManager = new ConnectionManager();
         this.eventHandler = new EventHandler(connectionManager);
         this.nextConnectionExpiry = maxInactiveMinutes * 60 * 1000;
-
-        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        ConnectionsMonitorImpl connectionMonitor = new ConnectionsMonitorImpl(connectionManager);
-        try {
-            mBeanServer.registerMBean(connectionMonitor, connectionMonitor.getObjectName());
-        } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {
-            e.printStackTrace();
-        }
     }
 
     public void start() {
+        createConnectionsMBean();
         try (Selector selector = Selector.open();
             ServerSocketChannel socketChannel = ServerSocketChannel.open()) {
 
@@ -120,6 +113,16 @@ public class Server {
     private void createConnectionMBean(Connection connection) {
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         ConnectionMonitorImpl connectionMonitor = new ConnectionMonitorImpl(connection);
+        try {
+            mBeanServer.registerMBean(connectionMonitor, connectionMonitor.getObjectName());
+        } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createConnectionsMBean() {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ConnectionsMonitorImpl connectionMonitor = new ConnectionsMonitorImpl(connectionManager);
         try {
             mBeanServer.registerMBean(connectionMonitor, connectionMonitor.getObjectName());
         } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {

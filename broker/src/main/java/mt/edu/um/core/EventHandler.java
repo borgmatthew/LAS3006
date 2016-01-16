@@ -5,6 +5,7 @@ import mt.edu.um.client.ClientsFacade;
 import mt.edu.um.client.ClientsFacadeImpl;
 import mt.edu.um.monitor.ClientMonitorImpl;
 import mt.edu.um.monitor.ConnectionMonitorImpl;
+import mt.edu.um.monitor.TopicsMonitorImpl;
 import mt.edu.um.protocol.connection.Connection;
 import mt.edu.um.protocol.message.Message;
 import mt.edu.um.topic.TopicsFacade;
@@ -38,6 +39,7 @@ public class EventHandler {
     public EventHandler(ConnectionManager connectionManager) {
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.connectionManager = connectionManager;
+        createTopicsMonitorMBean(topicsFacade);
     }
 
     public void handleMessages(Connection origin) {
@@ -99,6 +101,16 @@ public class EventHandler {
         try {
             mBeanServer.unregisterMBean(new ClientMonitorImpl(client).getObjectName());
         } catch (InstanceNotFoundException | MBeanRegistrationException | MalformedObjectNameException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createTopicsMonitorMBean(TopicsFacade topicsFacade) {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        TopicsMonitorImpl topicsMonitor = new TopicsMonitorImpl(topicsFacade);
+        try {
+            mBeanServer.registerMBean(topicsMonitor, topicsMonitor.getObjectName());
+        } catch (InstanceAlreadyExistsException | MBeanRegistrationException | MalformedObjectNameException | NotCompliantMBeanException e) {
             e.printStackTrace();
         }
     }

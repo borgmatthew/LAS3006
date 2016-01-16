@@ -1,17 +1,21 @@
 package mt.edu.um.core;
 
-import mt.edu.um.protocol.connection.Connection;
-import mt.edu.um.protocol.message.Message;
 import mt.edu.um.client.Client;
 import mt.edu.um.client.ClientsFacade;
 import mt.edu.um.client.ClientsFacadeImpl;
+import mt.edu.um.monitor.ClientMonitorImpl;
+import mt.edu.um.monitor.ConnectionMonitorImpl;
+import mt.edu.um.protocol.connection.Connection;
+import mt.edu.um.protocol.message.Message;
 import mt.edu.um.topic.TopicsFacade;
 import mt.edu.um.topic.TopicsFacadeImpl;
 import mt.edu.um.topictree.TopicTreeFacade;
 import mt.edu.um.topictree.TopicTreeFacadeImpl;
 import mt.edu.um.topictree.TopicTreeImpl;
 
+import javax.management.*;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -59,11 +63,12 @@ public class EventHandler {
         CompletableFuture.runAsync(() -> {
             System.out.println("Disconnecting client " + connection.getClientId() + "\n");
 
-            Optional<Client> subscriberOptional = clientsFacade.get(connection.getClientId());
-            if (subscriberOptional.isPresent()) {
-                subscriberOptional.get().getTopics().stream().forEach(topic -> topicTreeFacade.unsubscribe(topic, subscriberOptional.get()));
-                clientsFacade.remove(subscriberOptional.get().getId());
+            Optional<Client> clientOptional = clientsFacade.get(connection.getClientId());
+            if (clientOptional.isPresent()) {
+                clientOptional.get().getTopics().stream().forEach(topic -> topicTreeFacade.unsubscribe(topic, clientOptional.get()));
+                clientsFacade.remove(clientOptional.get().getId());
                 connectionMapper.remove(connection.getClientId());
+                unregisterClient(clientOptional.get());
             }
 
             connection.getOutgoingMessages().emptyBuffer();
@@ -76,6 +81,26 @@ public class EventHandler {
         }, executorService);
 
         connectionManager.removeConnection(connection);
+
+        unregisterConnection(connection);
+    }
+
+    private void unregisterConnection(Connection connection) {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        try {
+            mBeanServer.unregisterMBean(new ConnectionMonitorImpl(connection).getObjectName());
+        } catch (InstanceNotFoundException | MBeanRegistrationException | MalformedObjectNameException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void unregisterClient(Client client) {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        try {
+            mBeanServer.unregisterMBean(new ClientMonitorImpl(client).getObjectName());
+        } catch (InstanceNotFoundException | MBeanRegistrationException | MalformedObjectNameException e) {
+            e.printStackTrace();
+        }
     }
 
 }

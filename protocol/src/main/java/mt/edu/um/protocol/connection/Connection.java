@@ -14,8 +14,10 @@ public class Connection {
     private final MessageBuffer incomingMessages;
     private int clientId;
     private Instant lastActive;
+    private final long objectCreationTime;
 
     public Connection(SelectionKey selectionKey) {
+        this.objectCreationTime = Instant.now().toEpochMilli();
         this.selectionKey = selectionKey;
         this.state = ConnectionState.NOT_CONNECTED;
         this.clientId = -1;
@@ -60,5 +62,9 @@ public class Connection {
     public Connection setLastActive(Instant lastActive) {
         this.lastActive = lastActive;
         return this;
+    }
+
+    public long getObjectCreationTime() {
+        return objectCreationTime;
     }
 }

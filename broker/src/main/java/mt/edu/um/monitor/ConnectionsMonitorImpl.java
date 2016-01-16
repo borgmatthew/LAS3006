@@ -18,7 +18,7 @@ public class ConnectionsMonitorImpl implements ConnectionsMonitor {
 
     @Override
     public int getTotalConnections() {
-        return connectionManager.getTotalConnections();
+        return connectionManager.getConnections().size();
     }
 
     public ObjectName getObjectName() throws MalformedObjectNameException {

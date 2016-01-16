@@ -38,6 +38,6 @@ public class ConnectionMonitorImpl implements ConnectionMonitor {
     }
 
     public ObjectName getObjectName() throws MalformedObjectNameException {
-        return new ObjectName("mt.edu.um.core:type=Connections,category=connection,name=connection#" + connection.getLastActive().toEpochMilli());
+        return new ObjectName("mt.edu.um.core:type=Connections,category=connection,name=connection#" + connection.getObjectCreationTime());
     }
 }

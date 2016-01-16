@@ -62,6 +62,13 @@ public class TopicTreeImpl implements TopicTree {
     }
 
     @Override
+    public List<TopicPath> getAllTopics() {
+        return null;
+    }
+
+
+
+    @Override
     public void traverse(Consumer<Set<Client>> consumer) {
         Stack<Node<Topic, Set<Client>>> stack = new Stack<>();
         stack.push(root);
@@ -78,8 +85,8 @@ public class TopicTreeImpl implements TopicTree {
     }
 
     @Override
-    public List<Object> traverse(Function<Set<Client>, Object> function) {
-        List<Object> result = new ArrayList<>();
+    public <K> List<K> traverse(Function<Set<Client>, K> function) {
+        List<K> result = new ArrayList<>();
         Stack<Node<Topic, Set<Client>>> stack = new Stack<>();
         stack.push(root);
         while (!stack.empty()) {

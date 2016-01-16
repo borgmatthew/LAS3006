@@ -13,7 +13,9 @@ import java.util.function.Function;
  */
 public interface TopicTree extends Tree<TopicPath, Set<Client>> {
 
-    List traverse(Function<Set<Client>, Object> function);
+    <K> List<K> traverse(Function<Set<Client>, K> function);
 
     Set<Client> getSubscribers(TopicPath key);
+
+    List<TopicPath> getAllTopics();
 }

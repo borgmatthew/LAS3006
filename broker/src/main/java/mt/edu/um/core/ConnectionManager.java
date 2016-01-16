@@ -38,7 +38,7 @@ public class ConnectionManager {
         return connectionList.tailMap(timeout).values();
     }
 
-    public int getTotalConnections() {
-        return connectionList.size();
+    public ArrayList<Connection> getConnections() {
+        return new ArrayList<>(connectionList.values());
     }
 }

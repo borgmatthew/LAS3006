@@ -27,7 +27,7 @@
         <default.message.frequency>4</default.message.frequency>
         <default.subscribe.topic>#</default.subscribe.topic>
         <default.publish.topic>#</default.publish.topic>
-        <default.client.inactive.minutes>5</default.client.inactive.minutes>
+        <default.client.inactive.minutes>1</default.client.inactive.minutes>
     </properties>
 
     <build>

@@ -103,7 +103,6 @@ public class Server {
                         .forEach(eventHandler::closeConnection);
 
                 nextConnectionExpiry = Math.abs((connectionManager.getNearestExpiry().orElse(Instant.now().toEpochMilli()) + maxInactiveMinutes * 60 * 1000L) - Instant.now().toEpochMilli());
-                System.out.println(nextConnectionExpiry);
             }
         } catch (IOException e) {
             e.printStackTrace();

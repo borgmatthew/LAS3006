@@ -70,8 +70,6 @@ public class TopicTreeImpl implements TopicTree {
             Map<Topic, Node<Topic, Set<Client>>> children = root.getChildren();
             for (Node<Topic, Set<Client>> node : children.values()) {
                 consumer.accept(node.getValue());
-                //TODO: remove code to print tree
-                System.out.println(root.getKey().getName() + " -> " + node.getKey().getName() + ";");
                 stack.push(node);
             }
         }
@@ -104,10 +102,10 @@ public class TopicTreeImpl implements TopicTree {
             Topic topic = key.getTopics().get(depth);
             if (!node.getChildren().keySet().contains(topic)) {
                 node.getChildren().put(topic, new Node<>(topic, value));
+                return true;
             } else {
-                node.getChildren().get(topic).getValue().addAll(value);
+                return node.getChildren().get(topic).getValue().addAll(value);
             }
-            return true;
         } else {
             Topic topic = key.getTopics().get(depth);
             Node<Topic, Set<Client>> nextNode;

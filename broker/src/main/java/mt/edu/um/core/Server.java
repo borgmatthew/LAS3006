@@ -81,7 +81,7 @@ public class Server {
 
                         if (key.isValid() && key.isWritable()) {
                             List<Message> outgoingMessages = ((Connection)key.attachment()).getOutgoingMessages().emptyBuffer();
-                            outgoingMessages.forEach(message -> {
+                            outgoingMessages.stream().forEach(message -> {
                                 try {
                                     brokerProtocol.send((SocketChannel) key.channel(), message);
                                 } catch (IOException e) {
@@ -98,12 +98,12 @@ public class Server {
                     }
                 }
 
-                final long nowInMillis = Instant.now().toEpochMilli();
-                connectionManager.getTimedOutConnections(nowInMillis - (maxInactiveMinutes * 60 * 1000L))
+                connectionManager.getTimedOutConnections(Instant.now().toEpochMilli() - (maxInactiveMinutes * 60 * 1000L))
                         .stream()
                         .forEach(eventHandler::closeConnection);
 
-                nextConnectionExpiry = Math.abs((connectionManager.getLastEntry().orElse(nowInMillis) + maxInactiveMinutes * 60) - nowInMillis);
+                nextConnectionExpiry = Math.abs((connectionManager.getNearestExpiry().orElse(Instant.now().toEpochMilli()) + maxInactiveMinutes * 60 * 1000L) - Instant.now().toEpochMilli());
+                System.out.println(nextConnectionExpiry);
             }
         } catch (IOException e) {
             e.printStackTrace();

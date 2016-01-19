@@ -61,7 +61,7 @@ public class Client {
 
                         if (key.isValid() && key.isReadable()) {
                             try {
-                                brokerProtocol.receive((SocketChannel) key.channel())
+                                brokerProtocol.receive((SocketChannel) key.channel()).stream()
                                         .forEach(message -> message.accept(new ClientMessageHandler((Connection) key.attachment())));
                             } catch (IOException e) {
                                 key.cancel();
@@ -71,7 +71,7 @@ public class Client {
                         if (key.isValid() && key.isWritable()) {
                             Connection connection = (Connection) key.attachment();
                             SocketChannel channel = (SocketChannel) key.channel();
-                            connection.getOutgoingMessages().emptyBuffer().forEach(message -> {
+                            connection.getOutgoingMessages().emptyBuffer().stream().forEach(message -> {
                                 try {
                                     brokerProtocol.send(channel, message);
                                 } catch (IOException e) {

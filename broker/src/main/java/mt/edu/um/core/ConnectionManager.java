@@ -52,7 +52,7 @@ public class ConnectionManager {
         }
     }
 
-    public Optional<Long> getLastEntry() {
+    public Optional<Long> getNearestExpiry() {
         try {
             lock.readLock().lock();
             if (!connectionList.isEmpty()) {
